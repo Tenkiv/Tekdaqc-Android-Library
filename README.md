@@ -1,13 +1,13 @@
 Tekdaqc-Android-Library
 =======================
 
-An Android library project wrapper of the [Tekdaqc Java library](https://github.com/Tenkiv/Tekdaqc-Java-Library).
+An Android library project wrapper of the [Tekdaqc Java Library](https://github.com/Tenkiv/Tekdaqc-Java-Library).
 
 Join [Intelligent Automation, Computer Interface, & DAQ Community](https://plus.google.com/u/0/communities/109351353187504550254) on [![DAQ Community on Google Plus](https://ssl.gstatic.com/images/icons/gplus-16.png)](https://plus.google.com/u/0/communities/109351353187504550254) to stay up-to-date on the latest news.
 
-The [Tekdaqc Android Manager](https://github.com/Tenkiv/Tekdaqc-Android-Manager) project is an open source, Android specific version of our [Tekdaqc Manager](), originally created by [Ian Thomas at ToxicBakery](https://github.com/ToxicBakery) as an example use of this library. [Check it out!](https://github.com/Tenkiv/Tekdaqc-Android-Manager)
+The [Tekdaqc Android Manager](https://github.com/Tenkiv/Tekdaqc-Android-Manager) project is an open source, Android specific version of our [Tekdaqc Manager](https://github.com/Tenkiv/Tekdaqc-Manager), originally created by [Ian Thomas at ToxicBakery](https://github.com/ToxicBakery) as an example use of this library. [Check it out!](https://github.com/Tenkiv/Tekdaqc-Android-Manager)
 
-## Using Rajawali
+## Using the Tekdaqc Android Library
 
 1. Clone or download a copy of the Tekdaqc Android Library source code.
 2. Import the Tekdaqc Android Library project into Eclipse.
@@ -19,6 +19,7 @@ The [Tekdaqc Android Manager](https://github.com/Tenkiv/Tekdaqc-Android-Manager)
 * [Tekdaqc Java library](https://github.com/Tenkiv/Tekdaqc-Java-Library)
 * [Tekdaqc Threaded Java Library]()
 * [Tekdaqc Android Manager](https://github.com/Tenkiv/Tekdaqc-Android-Manager)
+* [Tekdaqc Manager](https://github.com/Tenkiv/Tekdaqc-Manager)
 * [Tekdaqc Firmware](https://github.com/Tenkiv/Tekdaqc-Firmware)
 
 ### Tekdaqc Manual
