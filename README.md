@@ -32,3 +32,10 @@ The [Tekdaqc Android Manager](https://github.com/Tenkiv/Tekdaqc-Android-Manager)
 
 Please see our [contribution guidelines](https://github.com/Tenkiv/Tekdaqc-Android-Library/blob/master/CONTRIBUTING.md) if you have issues or code contributions.
 
+### Contributors
+#### Tenkiv, Inc.
+* [Jared Woolston](https://github.com/jwoolston)
+
+#### Third Party
+* [Ian Thomas at ToxicBakery](https://github.com/ToxicBakery)
+
