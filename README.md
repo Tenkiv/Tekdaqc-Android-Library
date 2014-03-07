@@ -5,7 +5,7 @@ An Android library project wrapper of the [Tekdaqc Java library](https://github.
 
 Join [Intelligent Automation, Computer Interface, & DAQ Community](https://plus.google.com/u/0/communities/109351353187504550254) on [![DAQ Community on Google Plus](https://ssl.gstatic.com/images/icons/gplus-16.png)](https://plus.google.com/u/0/communities/109351353187504550254) to stay up-to-date on the latest news.
 
-The [Tekdaqc Android Manager](https://github.com/Tenkiv/Tekdaqc-Android-Manager) project is an open source Android specific version of our [Tekdaqc Manager](), originally created by [Ian Thomas at ToxicBakery](https://github.com/ToxicBakery). [Check it out!](https://github.com/Tenkiv/Tekdaqc-Android-Manager)
+The [Tekdaqc Android Manager](https://github.com/Tenkiv/Tekdaqc-Android-Manager) project is an open source, Android specific version of our [Tekdaqc Manager](), originally created by [Ian Thomas at ToxicBakery](https://github.com/ToxicBakery) as an example use of this library. [Check it out!](https://github.com/Tenkiv/Tekdaqc-Android-Manager)
 
 ## Using Rajawali
 
