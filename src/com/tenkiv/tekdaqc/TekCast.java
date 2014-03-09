@@ -2,7 +2,7 @@ package com.tenkiv.tekdaqc;
 
 import java.util.ArrayList;
 
-import com.tenkiv.tekdaqc.TelnetService.ServiceAction;
+import com.tenkiv.tekdaqc.DiscoveryService.ServiceAction;
 import com.tenkiv.tekdaqc.command.Command;
 import com.tenkiv.tekdaqc.command.Parameter;
 
@@ -16,7 +16,7 @@ public interface TekCast {
 	public static final String ACTION_FOUND_BOARD = PACKAGE + "ACTION_FOUND_BOARD";
 
 	/**
-	 * The {@link ServiceAction} to be processed by a {@link TelnetService} instance.
+	 * The {@link ServiceAction} to be processed by a {@link DiscoveryService} instance.
 	 */
 	public static final String EXTRA_SERVICE_ACTION = PACKAGE + "EXTRA_SERVICE_ACTION";
 

@@ -19,7 +19,7 @@ import com.tenkiv.tekdaqc.command.Command;
 import com.tenkiv.tekdaqc.command.Parameter;
 import com.tenkiv.tekdaqc.peripherals.analog.AAnalogInput;
 
-public class TelnetService extends Service {
+public class DiscoveryService extends Service {
 
 	private static final String TAG = "TelnetService";
 
@@ -27,7 +27,7 @@ public class TelnetService extends Service {
 	private ServiceHandler mServiceHandler;
 
 	/**
-	 * Processable actions by the {@link TelnetService}.
+	 * Processable actions by the {@link DiscoveryService}.
 	 * 
 	 * @author <a href=mailto:toxicbakery@gmail.com>Ian Thomas</a>
 	 * 
@@ -88,13 +88,13 @@ public class TelnetService extends Service {
 	}
 
 	/**
-	 * Worker thread for handling incoming {@link TelnetService} {@link ServiceAction} requests.
+	 * Worker thread for handling incoming {@link DiscoveryService} {@link ServiceAction} requests.
 	 */
-	private static final class ServiceHandler extends Handler implements OnATekDAQCDiscovered {
+	private static final class ServiceHandler extends Handler {
 
-		private TelnetService mService;
+		private DiscoveryService mService;
 
-		public ServiceHandler(Looper looper, TelnetService service) {
+		public ServiceHandler(Looper looper, DiscoveryService service) {
 			super(looper);
 			mService = service;
 		}
@@ -106,16 +106,6 @@ public class TelnetService extends Service {
 			final ServiceAction action = ServiceAction.valueOf(data.getString(TekCast.EXTRA_SERVICE_ACTION));
 
 			switch (action) {
-			case SEARCH:
-				final LocatorParams discoveryParams = (LocatorParams) data
-						.getSerializable(TekCast.EXTRA_LOCATOR_PARAMS);
-
-				// Search for boards on the network. Discovered boards will immediately callback to onDiscovery.
-				if (!Locator.searchForTekDAQCS(this, discoveryParams == null ? LocatorParams.getDefaultInstance()
-						: discoveryParams))
-					Log.e(TAG, "Failed to start location request.");
-
-				return;
 			case COMMAND:
 				final ATekDAQC<? extends AAnalogInput> board = (ATekDAQC<? extends AAnalogInput>) data
 						.getSerializable(TekCast.EXTRA_TEK_BOARD);
@@ -155,12 +145,6 @@ public class TelnetService extends Service {
 			}
 		}
 
-		@Override
-		public void onDiscovery(ATekDAQC<? extends AAnalogInput> board) {
-			final Intent boardsIntent = new Intent(TekCast.ACTION_FOUND_BOARD);
-			boardsIntent.putExtra(TekCast.EXTRA_TEK_BOARD, board);
-			mService.sendBroadcast(boardsIntent);
-		}
 	}
 
 }
