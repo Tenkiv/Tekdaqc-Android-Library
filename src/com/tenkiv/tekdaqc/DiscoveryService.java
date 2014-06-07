@@ -1,23 +1,15 @@
 package com.tenkiv.tekdaqc;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
 import android.app.Service;
 import android.content.Intent;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
+import android.os.*;
 import android.os.Process;
 import android.util.Log;
-
-import com.tenkiv.tekdaqc.Locator.OnATekDAQCDiscovered;
 import com.tenkiv.tekdaqc.command.Command;
 import com.tenkiv.tekdaqc.command.Parameter;
-import com.tenkiv.tekdaqc.peripherals.analog.AAnalogInput;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class DiscoveryService extends Service {
 
@@ -107,8 +99,7 @@ public class DiscoveryService extends Service {
 
 			switch (action) {
 			case COMMAND:
-				final ATekDAQC<? extends AAnalogInput> board = (ATekDAQC<? extends AAnalogInput>) data
-						.getSerializable(TekCast.EXTRA_TEK_BOARD);
+				final ATekDAQC board = (ATekDAQC) data.getSerializable(TekCast.EXTRA_TEK_BOARD);
 				if (board == null) {
 					Log.e(TAG, "There was an error retrieving the selected TekDAQC.");
 					return;

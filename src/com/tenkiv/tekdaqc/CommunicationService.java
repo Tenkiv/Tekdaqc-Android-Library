@@ -1,16 +1,14 @@
 package com.tenkiv.tekdaqc;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionException;
-
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
-
 import com.tenkiv.tekdaqc.Locator.OnATekDAQCDiscovered;
-import com.tenkiv.tekdaqc.peripherals.analog.AAnalogInput;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 
 public class CommunicationService extends Service {
 
@@ -58,7 +56,7 @@ public class CommunicationService extends Service {
 		}
 
 		@Override
-		public void onDiscovery(ATekDAQC<? extends AAnalogInput> board) {
+		public void onDiscovery(ATekDAQC board) {
 			final Intent boardsIntent = new Intent(TekCast.ACTION_FOUND_BOARD);
 			boardsIntent.putExtra(TekCast.EXTRA_TEK_BOARD, board);
 			mService.sendBroadcast(boardsIntent);

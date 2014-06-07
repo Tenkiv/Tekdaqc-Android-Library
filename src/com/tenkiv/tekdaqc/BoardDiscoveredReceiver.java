@@ -25,13 +25,13 @@ public abstract class BoardDiscoveredReceiver extends BroadcastReceiver {
 	 * 
 	 * @param boards
 	 */
-	protected abstract void onSearchResult(ATekDAQC<? extends AAnalogInput> board);
+	protected abstract void onSearchResult(ATekDAQC board);
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		try {
-			onSearchResult((ATekDAQC<? extends AAnalogInput>) intent.getSerializableExtra(TekCast.EXTRA_TEK_BOARD));
+			onSearchResult((ATekDAQC) intent.getSerializableExtra(TekCast.EXTRA_TEK_BOARD));
 		} catch (ClassCastException e) {
 			Log.e(TAG, "Failed to extract map of boards from data bundle.");
 			e.printStackTrace();
