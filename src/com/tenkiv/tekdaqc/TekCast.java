@@ -1,10 +1,10 @@
 package com.tenkiv.tekdaqc;
 
-import java.util.ArrayList;
-
 import com.tenkiv.tekdaqc.DiscoveryService.ServiceAction;
 import com.tenkiv.tekdaqc.command.Command;
 import com.tenkiv.tekdaqc.command.Parameter;
+
+import java.util.ArrayList;
 
 public interface TekCast {
 

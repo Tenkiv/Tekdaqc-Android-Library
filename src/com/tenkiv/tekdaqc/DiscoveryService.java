@@ -4,21 +4,18 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.*;
 import android.os.Process;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import com.tenkiv.tekdaqc.command.Command;
-import com.tenkiv.tekdaqc.command.Parameter;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
-public class DiscoveryService extends Service {
+public class DiscoveryService extends Service implements Locator.OnATekDAQCDiscovered {
 
 	private static final String TAG = "TelnetService";
 
 	private Looper mServiceLooper;
 	private ServiceHandler mServiceHandler;
+    private LocalBroadcastManager mLocalBroadcastMgr;
 
-	/**
+    /**
 	 * Processable actions by the {@link DiscoveryService}.
 	 * 
 	 * @author <a href=mailto:toxicbakery@gmail.com>Ian Thomas</a>
@@ -31,11 +28,6 @@ public class DiscoveryService extends Service {
 		SEARCH
 
 		/**
-		 * Send an {@link ArrayList} of {@link Parameter}s to the device.
-		 */
-		, COMMAND
-
-		/**
 		 * Force shutdown of the {@link TelnetService}.
 		 */
 		, STOP;
@@ -43,11 +35,14 @@ public class DiscoveryService extends Service {
 
 	@Override
 	public void onCreate() {
-		HandlerThread thread = new HandlerThread("TekDAQC TelnetService", Process.THREAD_PRIORITY_BACKGROUND);
+		HandlerThread thread = new HandlerThread("TekDAQC Discovery Service", Process.THREAD_PRIORITY_BACKGROUND);
 		thread.start();
 
 		mServiceLooper = thread.getLooper();
 		mServiceHandler = new ServiceHandler(mServiceLooper, this);
+        mLocalBroadcastMgr = LocalBroadcastManager.getInstance(getApplicationContext());
+
+        Locator.setDebug(true);
 	}
 
 	@Override
@@ -60,7 +55,7 @@ public class DiscoveryService extends Service {
 		
 		extras.putString(TekCast.EXTRA_SERVICE_ACTION, action);
 
-		// Run each command in a separate thread. When all threads complete, the service will shutdown.
+		// Run each command in a separate thread.
 		final Message msg = mServiceHandler.obtainMessage();
 		msg.arg1 = startId;
 		msg.setData(extras);
@@ -78,6 +73,13 @@ public class DiscoveryService extends Service {
 	public void onDestroy() {
 		Log.v(TAG, "TelnetService is shutting down.");
 	}
+
+    @Override
+    public void onDiscovery(ATekDAQC board) {
+        final Intent intent = new Intent(TekCast.ACTION_FOUND_BOARD);
+        intent.putExtra(TekCast.EXTRA_TEK_BOARD, board);
+        mLocalBroadcastMgr.sendBroadcast(intent);
+    }
 
 	/**
 	 * Worker thread for handling incoming {@link DiscoveryService} {@link ServiceAction} requests.
@@ -98,44 +100,17 @@ public class DiscoveryService extends Service {
 			final ServiceAction action = ServiceAction.valueOf(data.getString(TekCast.EXTRA_SERVICE_ACTION));
 
 			switch (action) {
-			case COMMAND:
-				final ATekDAQC board = (ATekDAQC) data.getSerializable(TekCast.EXTRA_TEK_BOARD);
-				if (board == null) {
-					Log.e(TAG, "There was an error retrieving the selected TekDAQC.");
-					return;
-				}
-
-				// Process the provided command and params
-				try {
-					final Command command = (Command) data.getSerializable(TekCast.EXTRA_SERVICE_COMMAND);
-					final ArrayList<Parameter> params = (ArrayList<Parameter>) data
-							.getSerializable(TekCast.EXTRA_SERVICE_PARAMS);
-
-					if (command == null) {
-						Log.e(TAG,
-								"Ignoring " + ServiceAction.COMMAND + " request missing "
-										+ Command.class.getSimpleName());
-						return;
-					}
-
-					try {
-						board.executeCommand(command, params);
-					} catch (IOException e) {
-						Log.e(TAG, "Error executing command:");
-						e.printStackTrace();
-					}
-
-					return;
-				} catch (ClassCastException e) {
-					Log.e(TAG, "Failed to extract command or parameters from the message bundle.");
-					return;
-				}
+			case SEARCH:
+                LocatorParams params = (LocatorParams) data.getSerializable(TekCast.EXTRA_LOCATOR_PARAMS);
+                if (params == null) {
+                    params = LocatorParams.getDefaultInstance();
+                }
+                Locator.searchForTekDAQCS(mService, params);
+                break;
 			case STOP:
 				mService.stopSelf();
 				return;
 			}
 		}
-
 	}
-
 }
