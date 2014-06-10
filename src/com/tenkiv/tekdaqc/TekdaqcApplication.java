@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,6 +26,7 @@ public class TekdaqcApplication extends Application {
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate()");
+        mBoards = new ArrayList<ATekDAQC>();
         mDiscoveryReceiver = new DeviceDiscoveryReceiver(this);
         mLocalBroadcastMgr = LocalBroadcastManager.getInstance(getApplicationContext());
         mLocalBroadcastMgr.registerReceiver(mDiscoveryReceiver, new IntentFilter(TekCast.ACTION_FOUND_BOARD));
@@ -34,7 +36,8 @@ public class TekdaqcApplication extends Application {
         mBoards.clear();
         final LocatorParams.Builder builder = new LocatorParams.Builder();
 
-        final Intent intent = new Intent(getApplicationContext(), CommunicationService.class);
+
+        final Intent intent = new Intent(getApplicationContext(), DiscoveryService.class);
         intent.setAction(DiscoveryService.ServiceAction.SEARCH.toString());
         intent.putExtra(TekCast.EXTRA_LOCATOR_PARAMS, builder.build());
         getApplicationContext().startService(intent);
