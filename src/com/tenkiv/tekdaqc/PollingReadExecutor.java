@@ -5,11 +5,13 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.regex.Pattern;
 
 /**
  * Created by ideal on 6/9/14.
@@ -46,10 +48,13 @@ public class PollingReadExecutor {
                     Log.d(TAG, "Polling board: " + key);
                     TekdaqcCommunicationSession session = mSessions.get(key);
                     final BufferedReader in = session.getBufferedReader();
-                    String data;
-                    while ((data = in.readLine()) != null) {
-                        Log.d("", data);
+                    Scanner s = new Scanner(in);
+                    s.useDelimiter(Pattern.compile("\\x1E"));
+                    final StringBuilder builder = new StringBuilder();
+                    while (s.hasNext()) {
+                        builder.append(s.next());
                     }
+                    Log.d("MESSAGE", builder.toString());
                 }
             }
         }

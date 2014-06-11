@@ -73,7 +73,7 @@ public class DiscoveryService extends Service implements Locator.OnATekDAQCDisco
 
 	@Override
 	public void onDestroy() {
-		Log.v(TAG, "TelnetService is shutting down.");
+		Log.v(TAG, "DiscoveryService is shutting down.");
 	}
 
     @Override

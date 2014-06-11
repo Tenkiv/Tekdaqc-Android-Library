@@ -1,10 +1,6 @@
 package com.tenkiv.tekdaqc;
 
 import com.tenkiv.tekdaqc.CommunicationService.ServiceAction;
-import com.tenkiv.tekdaqc.command.Command;
-import com.tenkiv.tekdaqc.command.Parameter;
-
-import java.util.ArrayList;
 
 public interface TekCast {
 
@@ -28,19 +24,21 @@ public interface TekCast {
 	 */
 	public static final String EXTRA_SERVICE_ACTION = PACKAGE + "EXTRA_SERVICE_ACTION";
 
-	/**
-	 * The {@link Command} to processed when requesting {@link ServiceAction#COMMAND} action.
-	 */
-	public static final String EXTRA_SERVICE_COMMAND = PACKAGE + "EXTRA_SERVICE_COMMAND";
-
-	/**
-	 * An {@link ArrayList} of {@link Parameter}s.
-	 */
-	public static final String EXTRA_SERVICE_PARAMS = PACKAGE + "EXTRA_SERVICE_PARAMS";
-
     public static final String EXTRA_SESSION_UUID = PACKAGE + "EXTRA_SESSION_UUID";
 
     public static final String EXTRA_BOARD_SERIAL = PACKAGE + "EXTRA_BOARD_SERIAL";
+
+    public static final String EXTRA_BOARD_COMMAND = PACKAGE + "EXTRA_BOARD_COMMAND";
+
+    public static final String EXTRA_COMMAND_PARAMS = PACKAGE + "EXTRA_COMMAND_PARAMS";
+
+    public static final String EXTRA_ANALOG_INPUT = PACKAGE + "EXTRA_ANALOG_INPUT";
+
+    public static final String EXTRA_DIGITAL_INPUT = PACKAGE + "EXTRA_DIGITAL_INPUT";
+
+    public static final String EXTRA_DIGITAL_OUTPUT = PACKAGE + "EXTRA_DIGITAL_OUTPUT";
+
+    public static final String EXTRA_NUM_SAMPLES = PACKAGE + "EXTRA_NUM_SAMPLES";
 
 	/**
 	 * An instance of {@link ATekDAQC}
