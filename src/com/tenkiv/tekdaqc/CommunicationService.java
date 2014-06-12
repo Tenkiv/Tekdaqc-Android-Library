@@ -7,6 +7,7 @@ import android.os.Process;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import com.tenkiv.tekdaqc.command.Command;
+import com.tenkiv.tekdaqc.communication.TekdaqcCommunicationSession;
 import com.tenkiv.tekdaqc.peripherals.analog.AAnalogInput;
 import com.tenkiv.tekdaqc.peripherals.digital.DigitalInput;
 import com.tenkiv.tekdaqc.peripherals.digital.DigitalOutput;
@@ -20,7 +21,6 @@ public class CommunicationService extends Service {
     protected static final String TAG = CommunicationService.class.getSimpleName();
 
     private Map<String, TekdaqcCommunicationSession> mCommSessions;
-    private PollingReadExecutor mPollingExecutor;
 
     private Looper mServiceLooper;
     private ServiceHandler mServiceHandler;
@@ -38,7 +38,6 @@ public class CommunicationService extends Service {
         mLocalBroadcastMgr = LocalBroadcastManager.getInstance(getApplicationContext());
 
         mCommSessions = new ConcurrentHashMap<String, TekdaqcCommunicationSession>();
-        mPollingExecutor = new PollingReadExecutor(mCommSessions);
     }
 
     @Override
@@ -165,7 +164,9 @@ public class CommunicationService extends Service {
     /**
      * Processable actions by the {@link CommunicationService}.
      *
-     * @author <a href=mailto:toxicbakery@gmail.com>Ian Thomas</a>
+     * @author Ian Thomas (toxicbakery@gmail.com)
+     * @author Jared Woolston (jwoolston@tenkiv.com)
+     * @since 1.0.0.0
      */
     public static enum ServiceAction {
         /**
@@ -174,18 +175,26 @@ public class CommunicationService extends Service {
         CONNECT,
 
         /**
-         *
+         * Disconnect from a specific TekDAQC board.
          */
-        DISCONNECT, COMMAND
+        DISCONNECT,
 
         /**
-         * Force shutdown of the {@link TelnetService}.
+         * Issue a command to a specific TekDAQC board.
          */
-        , STOP;
+        COMMAND,
+
+        /**
+         * Force a shutdown of the {@link CommunicationService}.
+         */
+        STOP;
     }
 
     /**
      * Worker thread for handling incoming {@link DiscoveryService} {@link ServiceAction} requests.
+     *
+     * @author Jared Woolston (jwoolston@tenkiv.com)
+     * @since 1.0.0.0
      */
     private static final class ServiceHandler extends Handler {
 
