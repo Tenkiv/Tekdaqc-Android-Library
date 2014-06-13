@@ -56,7 +56,7 @@ public class TekdaqcApplication extends Application {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            final ATekDAQC board = (ATekDAQC) intent.getSerializableExtra(TekCast.EXTRA_TEK_BOARD);
+            final ATekDAQC board = ATekDAQC.getTekdaqcForSerial(intent.getStringExtra(TekCast.EXTRA_BOARD_SERIAL));
             if (board != null) {
                 mApplication.mBoards.add(board);
             }

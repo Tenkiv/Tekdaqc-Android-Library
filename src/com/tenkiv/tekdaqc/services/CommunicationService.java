@@ -111,8 +111,14 @@ public class CommunicationService extends Service {
             case READ_ANALOG_INPUT:
                 break;
             case ADD_ANALOG_INPUT: {
-                final AAnalogInput input = (AAnalogInput) params.getSerializable(TekCast.EXTRA_ANALOG_INPUT);
-                tekdaqc.addAnalogInput(input);
+                Log.d(TAG, "Processing command ADD_ANALOG_INPUT command.");
+                for (int i = 0; i < 10; ++i) {
+                    final Intent intent = new Intent(getApplicationContext(), CommandService.class);
+                    startService(intent);
+                    Log.d(TAG, "Sent broadcast: " + i);
+                }
+                /*final AAnalogInput input = (AAnalogInput) params.getSerializable(TekCast.EXTRA_ANALOG_INPUT);
+                tekdaqc.addAnalogInput(input);*/
                 break;
             }
             case REMOVE_ANALOG_INPUT: {
@@ -212,7 +218,7 @@ public class CommunicationService extends Service {
         public void handleMessage(Message msg) {
             final Bundle data = msg.getData();
             final ServiceAction action = ServiceAction.valueOf(data.getString(TekCast.EXTRA_SERVICE_ACTION));
-            final ATekDAQC tekdaqc = (ATekDAQC) data.getSerializable(TekCast.EXTRA_TEK_BOARD);
+            final ATekDAQC tekdaqc = ATekDAQC.getTekdaqcForSerial(data.getString(TekCast.EXTRA_BOARD_SERIAL));
             switch (action) {
                 case CONNECT:
                     Log.d(TAG, "Processing CONNECT message for Tekdaqc: " + tekdaqc);
@@ -248,6 +254,7 @@ public class CommunicationService extends Service {
                 case COMMAND:
                     if (tekdaqc != null) {
                         final String commandStr = data.getString(TekCast.EXTRA_BOARD_COMMAND);
+                        Log.d(TAG, "Handling command: " + commandStr);
                         final Command command = Command.toCommand(commandStr);
                         final Bundle params = data.getBundle(TekCast.EXTRA_COMMAND_PARAMS);
                         try {

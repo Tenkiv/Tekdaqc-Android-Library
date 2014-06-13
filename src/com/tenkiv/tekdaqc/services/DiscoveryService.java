@@ -83,7 +83,7 @@ public class DiscoveryService extends Service implements Locator.OnATekDAQCDisco
     @Override
     public void onDiscovery(ATekDAQC board) {
         final Intent intent = new Intent(TekCast.ACTION_FOUND_BOARD);
-        intent.putExtra(TekCast.EXTRA_TEK_BOARD, board);
+        intent.putExtra(TekCast.EXTRA_BOARD_SERIAL, board.getSerialNumber());
         mLocalBroadcastMgr.sendBroadcast(intent);
     }
 

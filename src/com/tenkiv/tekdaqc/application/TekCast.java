@@ -7,7 +7,7 @@ public interface TekCast {
 	static final String PACKAGE = TekCast.class.getPackage().getName() + ".";
 
 	/**
-	 * Broadcast action indicating a board has been found {@link #EXTRA_TEK_BOARD}
+	 * Broadcast action indicating a board has been found
 	 */
 	public static final String ACTION_FOUND_BOARD = PACKAGE + "ACTION_FOUND_BOARD";
 
@@ -39,11 +39,6 @@ public interface TekCast {
     public static final String EXTRA_DIGITAL_OUTPUT = PACKAGE + "EXTRA_DIGITAL_OUTPUT";
 
     public static final String EXTRA_NUM_SAMPLES = PACKAGE + "EXTRA_NUM_SAMPLES";
-
-	/**
-	 * An instance of {@link com.tenkiv.tekdaqc.ATekDAQC}
-	 */
-	public static final String EXTRA_TEK_BOARD = PACKAGE + "EXTRA_TEK_BOARD_MAP";
 
 	/**
 	 * An instance of {@link com.tenkiv.tekdaqc.LocatorParams}

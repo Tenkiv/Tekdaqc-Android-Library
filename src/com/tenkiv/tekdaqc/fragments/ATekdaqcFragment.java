@@ -11,7 +11,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import com.tenkiv.tekdaqc.application.TekCast;
 import com.tenkiv.tekdaqc.application.ATekdaqcActivity;
-import com.tenkiv.tekdaqc.calibration.data.TekdaqcSession;
+import com.tenkiv.tekdaqc.data.TekdaqcSession;
 
 /**
  * Created by ideal on 6/5/14.
