@@ -8,7 +8,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import com.tenkiv.tekdaqc.ATekDAQC;
 import com.tenkiv.tekdaqc.application.TekCast;
-import com.tenkiv.tekdaqc.command.Command;
+import com.tenkiv.tekdaqc.communication.command.ascii.Command;
 import com.tenkiv.tekdaqc.communication.TekdaqcCommunicationSession;
 import com.tenkiv.tekdaqc.peripherals.analog.AAnalogInput;
 import com.tenkiv.tekdaqc.peripherals.digital.DigitalInput;
@@ -222,7 +222,7 @@ public class CommunicationService extends Service {
             switch (action) {
                 case CONNECT:
                     Log.d(TAG, "Processing CONNECT message for Tekdaqc: " + tekdaqc);
-                    if (tekdaqc != null) {
+                    if (tekdaqc != null && !tekdaqc.isConnected()) {
                         final TekdaqcCommunicationSession session = new TekdaqcCommunicationSession(tekdaqc);
                         try {
                             session.connect();
@@ -237,7 +237,7 @@ public class CommunicationService extends Service {
                     break;
                 case DISCONNECT:
                     Log.d(TAG, "Processing DISCONNECT message for Tekdaqc: " + tekdaqc);
-                    if (tekdaqc != null) {
+                    if (tekdaqc != null && tekdaqc.isConnected()) {
                         try {
                             final TekdaqcCommunicationSession session = mService.mCommSessions.get(tekdaqc.getSerialNumber());
                             if (session != null) {
@@ -252,7 +252,7 @@ public class CommunicationService extends Service {
                     }
                     break;
                 case COMMAND:
-                    if (tekdaqc != null) {
+                    if (tekdaqc != null && tekdaqc.isConnected()) {
                         final String commandStr = data.getString(TekCast.EXTRA_BOARD_COMMAND);
                         Log.d(TAG, "Handling command: " + commandStr);
                         final Command command = Command.toCommand(commandStr);
