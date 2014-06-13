@@ -1,4 +1,4 @@
-package com.tenkiv.tekdaqc;
+package com.tenkiv.tekdaqc.services;
 
 import android.app.Service;
 import android.content.Intent;
@@ -6,6 +6,8 @@ import android.os.*;
 import android.os.Process;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import com.tenkiv.tekdaqc.ATekDAQC;
+import com.tenkiv.tekdaqc.application.TekCast;
 import com.tenkiv.tekdaqc.command.Command;
 import com.tenkiv.tekdaqc.communication.TekdaqcCommunicationSession;
 import com.tenkiv.tekdaqc.peripherals.analog.AAnalogInput;

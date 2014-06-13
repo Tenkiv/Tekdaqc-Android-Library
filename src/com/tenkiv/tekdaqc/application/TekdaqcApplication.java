@@ -1,4 +1,4 @@
-package com.tenkiv.tekdaqc;
+package com.tenkiv.tekdaqc.application;
 
 import android.app.Application;
 import android.content.BroadcastReceiver;
@@ -7,6 +7,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import com.tenkiv.tekdaqc.ATekDAQC;
+import com.tenkiv.tekdaqc.services.DiscoveryService;
+import com.tenkiv.tekdaqc.LocatorParams;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,6 +1,6 @@
-package com.tenkiv.tekdaqc;
+package com.tenkiv.tekdaqc.application;
 
-import com.tenkiv.tekdaqc.CommunicationService.ServiceAction;
+import com.tenkiv.tekdaqc.services.CommunicationService.ServiceAction;
 
 public interface TekCast {
 
@@ -20,7 +20,7 @@ public interface TekCast {
     public static final String ACTION_BOARD_DISCONNECTED = PACKAGE + "ACTION_BOARD_DISCONNECTED";
 
 	/**
-	 * The {@link ServiceAction} to be processed by a {@link DiscoveryService} instance.
+	 * The {@link ServiceAction} to be processed by a {@link com.tenkiv.tekdaqc.services.DiscoveryService} instance.
 	 */
 	public static final String EXTRA_SERVICE_ACTION = PACKAGE + "EXTRA_SERVICE_ACTION";
 
@@ -41,12 +41,12 @@ public interface TekCast {
     public static final String EXTRA_NUM_SAMPLES = PACKAGE + "EXTRA_NUM_SAMPLES";
 
 	/**
-	 * An instance of {@link ATekDAQC}
+	 * An instance of {@link com.tenkiv.tekdaqc.ATekDAQC}
 	 */
 	public static final String EXTRA_TEK_BOARD = PACKAGE + "EXTRA_TEK_BOARD_MAP";
 
 	/**
-	 * An instance of {@link LocatorParams}
+	 * An instance of {@link com.tenkiv.tekdaqc.LocatorParams}
 	 */
 	public static final String EXTRA_LOCATOR_PARAMS = PACKAGE + "EXTRA_LOCATOR_PARAMS";
 
