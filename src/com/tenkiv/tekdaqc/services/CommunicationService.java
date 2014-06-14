@@ -8,11 +8,8 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import com.tenkiv.tekdaqc.ATekDAQC;
 import com.tenkiv.tekdaqc.application.TekCast;
-import com.tenkiv.tekdaqc.communication.command.ascii.Command;
 import com.tenkiv.tekdaqc.communication.TekdaqcCommunicationSession;
-import com.tenkiv.tekdaqc.peripherals.analog.AAnalogInput;
-import com.tenkiv.tekdaqc.peripherals.digital.DigitalInput;
-import com.tenkiv.tekdaqc.peripherals.digital.DigitalOutput;
+import com.tenkiv.tekdaqc.communication.command.ascii.BoardCommandBuilder;
 
 import java.io.IOException;
 import java.util.Map;
@@ -75,98 +72,6 @@ public class CommunicationService extends Service {
         final Intent intent = new Intent(TekCast.ACTION_BOARD_DISCONNECTED);
         intent.putExtra(TekCast.EXTRA_BOARD_SERIAL, serial);
         mLocalBroadcastMgr.sendBroadcast(intent);
-    }
-
-    private void processCommand(ATekDAQC tekdaqc, Command command, Bundle params) throws IOException {
-        switch (command) {
-            case DISCONNECT:
-                tekdaqc.disconnect();
-                break;
-            case UPGRADE:
-                tekdaqc.upgrade();
-                break;
-            case IDENTIFY:
-                tekdaqc.identify();
-                break;
-            case SAMPLE:
-                tekdaqc.sample(params.getInt(TekCast.EXTRA_NUM_SAMPLES, 0));
-                break;
-            case HALT:
-                tekdaqc.halt();
-                break;
-            case SET_RTC:
-                break;
-            case SET_USER_MAC:
-                break;
-            case SET_STATIC_IP:
-                break;
-            case NONE:
-                tekdaqc.none();
-                break;
-            case LIST_ANALOG_INPUTS:
-                tekdaqc.listAnalogInputs();
-                break;
-            case READ_ADC_REGISTERS:
-                break;
-            case READ_ANALOG_INPUT:
-                break;
-            case ADD_ANALOG_INPUT: {
-                Log.d(TAG, "Processing command ADD_ANALOG_INPUT command.");
-                for (int i = 0; i < 10; ++i) {
-                    final Intent intent = new Intent(getApplicationContext(), CommandService.class);
-                    startService(intent);
-                    Log.d(TAG, "Sent broadcast: " + i);
-                }
-                /*final AAnalogInput input = (AAnalogInput) params.getSerializable(TekCast.EXTRA_ANALOG_INPUT);
-                tekdaqc.addAnalogInput(input);*/
-                break;
-            }
-            case REMOVE_ANALOG_INPUT: {
-                final AAnalogInput input = (AAnalogInput) params.getSerializable(TekCast.EXTRA_ANALOG_INPUT);
-                tekdaqc.removeAnalogInput(input);
-                break;
-            }
-            case CHECK_ANALOG_INPUT:
-                break;
-            case SYSTEM_GAIN_CAL:
-                tekdaqc.systemGainCalibrate();
-                break;
-            case SYSTEM_CAL:
-                tekdaqc.systemCalibrate();
-                break;
-            case LIST_DIGITAL_INPUTS:
-                break;
-            case READ_DIGITAL_INPUT:
-                break;
-            case ADD_DIGITAL_INPUT: {
-                final DigitalInput input = (DigitalInput) params.getSerializable(TekCast.EXTRA_DIGITAL_INPUT);
-                //TODO: Add digital input on tekdaqc
-                break;
-            }
-            case REMOVE_DIGITAL_INPUT: {
-                final DigitalInput input = (DigitalInput) params.getSerializable(TekCast.EXTRA_DIGITAL_INPUT);
-                //TODO: Remove digital input on tekdaqc
-                break;
-            }
-            case LIST_DIGITAL_OUTPUTS:
-                break;
-            case SET_DIGITAL_OUTPUT:
-                break;
-            case READ_DIGITAL_OUTPUT:
-                break;
-            case ADD_DIGITAL_OUTPUT: {
-                final DigitalOutput output = (DigitalOutput) params.getSerializable(TekCast.EXTRA_DIGITAL_OUTPUT);
-                //TODO: Add digital output on tekdaqc
-                break;
-            }
-            case REMOVE_DIGITAL_OUTPUT: {
-                final DigitalOutput output = (DigitalOutput) params.getSerializable(TekCast.EXTRA_DIGITAL_OUTPUT);
-                //TODO: Remove digital output on tekdaqc
-                break;
-            }
-            case CLEAR_DIGITAL_OUTPUT_FAULT:
-                break;
-        }
     }
 
     /**
@@ -253,15 +158,9 @@ public class CommunicationService extends Service {
                     break;
                 case COMMAND:
                     if (tekdaqc != null && tekdaqc.isConnected()) {
-                        final String commandStr = data.getString(TekCast.EXTRA_BOARD_COMMAND);
-                        Log.d(TAG, "Handling command: " + commandStr);
-                        final Command command = Command.toCommand(commandStr);
-                        final Bundle params = data.getBundle(TekCast.EXTRA_COMMAND_PARAMS);
-                        try {
-                            mService.processCommand(tekdaqc, command, params);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        final TekdaqcCommunicationSession session = mService.mCommSessions.get(tekdaqc.getSerialNumber());
+                        final BoardCommandBuilder command = (BoardCommandBuilder) data.getSerializable(TekCast.EXTRA_BOARD_COMMAND);
+                        session.executeCommand(command);
                     }
                     break;
                 case STOP:

@@ -7,8 +7,8 @@ import android.os.Process;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import com.tenkiv.tekdaqc.ATekDAQC;
-import com.tenkiv.tekdaqc.Locator;
-import com.tenkiv.tekdaqc.LocatorParams;
+import com.tenkiv.tekdaqc.locator.Locator;
+import com.tenkiv.tekdaqc.locator.LocatorParams;
 import com.tenkiv.tekdaqc.application.TekCast;
 
 public class DiscoveryService extends Service implements Locator.OnATekDAQCDiscovered {
@@ -27,7 +27,7 @@ public class DiscoveryService extends Service implements Locator.OnATekDAQCDisco
 	 */
 	public static enum ServiceAction {
 		/**
-		 * Locate all TekDAQC boards on a local network with the optionally provided {@link com.tenkiv.tekdaqc.LocatorParams}.
+		 * Locate all TekDAQC boards on a local network with the optionally provided {@link com.tenkiv.tekdaqc.locator.LocatorParams}.
 		 */
 		SEARCH
 

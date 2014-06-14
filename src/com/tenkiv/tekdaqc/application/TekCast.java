@@ -41,7 +41,7 @@ public interface TekCast {
     public static final String EXTRA_NUM_SAMPLES = PACKAGE + "EXTRA_NUM_SAMPLES";
 
 	/**
-	 * An instance of {@link com.tenkiv.tekdaqc.LocatorParams}
+	 * An instance of {@link com.tenkiv.tekdaqc.locator.LocatorParams}
 	 */
 	public static final String EXTRA_LOCATOR_PARAMS = PACKAGE + "EXTRA_LOCATOR_PARAMS";
 

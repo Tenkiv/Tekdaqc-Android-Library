@@ -9,7 +9,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import com.tenkiv.tekdaqc.ATekDAQC;
 import com.tenkiv.tekdaqc.services.DiscoveryService;
-import com.tenkiv.tekdaqc.LocatorParams;
+import com.tenkiv.tekdaqc.locator.LocatorParams;
 
 import java.util.ArrayList;
 import java.util.List;
