@@ -1,11 +1,11 @@
 package com.tenkiv.tekdaqc.application;
 
-import android.os.Bundle;
 import android.content.Intent;
+import android.os.Bundle;
 import com.tenkiv.tekdaqc.ATekDAQC;
+import com.tenkiv.tekdaqc.communication.tasks.ITask;
 import com.tenkiv.tekdaqc.locator.LocatorParams;
 import com.tenkiv.tekdaqc.services.CommunicationService.ServiceAction;
-import com.tenkiv.tekdaqc.services.DiscoveryService;
 
 /**
  * Container of {@link String}s for {@link Intent} and {@link Bundle} actions and extras.
@@ -42,9 +42,14 @@ public interface TekCast {
     public static final String ACTION_BOARD_DISCONNECTED = PACKAGE + "ACTION_BOARD_DISCONNECTED";
 
 	/**
-	 * The {@link ServiceAction} to be processed by a {@link DiscoveryService} instance.
+	 * The {@link ServiceAction} to be processed by a service.
 	 */
 	public static final String EXTRA_SERVICE_ACTION = PACKAGE + "EXTRA_SERVICE_ACTION";
+
+    /**
+     * A {@link ITask} instance
+     */
+    public static final String EXTRA_TASK = PACKAGE + "EXTRA_TASK";
 
     /**
      * The serial number of a {@link ATekDAQC}.

@@ -11,6 +11,7 @@ import com.tenkiv.tekdaqc.ATekDAQC.CONNECTION_METHOD;
 import com.tenkiv.tekdaqc.application.TekCast;
 import com.tenkiv.tekdaqc.communication.ascii.ASCIICommunicationSession;
 import com.tenkiv.tekdaqc.communication.ascii.command.ASCIICommand;
+import com.tenkiv.tekdaqc.communication.tasks.ITask;
 
 import java.io.IOException;
 import java.util.Map;
@@ -147,6 +148,11 @@ public class CommunicationService extends Service {
         COMMAND,
 
         /**
+         * Execute a provided {@link ITask}.
+         */
+        EXECUTE_TASK,
+
+        /**
          * Force a shutdown of the {@link CommunicationService}.
          */
         STOP;
@@ -240,6 +246,19 @@ public class CommunicationService extends Service {
                         final ASCIICommunicationSession session = mService.mCommSessions.get(tekdaqc.getSerialNumber());
                         final ASCIICommand command = (ASCIICommand) data.getSerializable(TekCast.EXTRA_BOARD_COMMAND);
                         session.executeCommand(command);
+                    }
+                    break;
+                case EXECUTE_TASK:
+                    // Execute an ITask
+                    if (tekdaqc == null) {
+                        throw new IllegalArgumentException("Missing required board extra.");
+                    } else if (!tekdaqc.isConnected()) {
+                        throw new IllegalStateException("Board " + tekdaqc.getSerialNumber() + " is not connected!");
+                    } else {
+                        final ASCIICommunicationSession session = mService.mCommSessions.get(tekdaqc.getSerialNumber());
+                        final ITask task = (ITask) data.getSerializable(TekCast.EXTRA_TASK);
+                        task.setSession(session);
+                        task.execute();
                     }
                     break;
                 case STOP:
