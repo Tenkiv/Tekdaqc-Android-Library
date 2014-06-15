@@ -7,36 +7,63 @@ import android.os.Process;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import com.tenkiv.tekdaqc.ATekDAQC;
+import com.tenkiv.tekdaqc.ATekDAQC.CONNECTION_METHOD;
 import com.tenkiv.tekdaqc.application.TekCast;
-import com.tenkiv.tekdaqc.communication.TekdaqcCommunicationSession;
-import com.tenkiv.tekdaqc.communication.command.ascii.BoardCommandBuilder;
+import com.tenkiv.tekdaqc.communication.ascii.ASCIICommunicationSession;
+import com.tenkiv.tekdaqc.communication.ascii.command.ASCIICommand;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Android service for communicating with one or more Tekdaqcs. Handles connecting, disconnect, transmission of
+ * ommands and receipt of messages/data.
+ *
+ * @author Jared Woolston (jwoolston@tenkiv.com)
+ * @since v1.0.0.0
+ */
 public class CommunicationService extends Service {
 
+    /**
+     * Logcat tag.
+     */
     protected static final String TAG = CommunicationService.class.getSimpleName();
 
-    private Map<String, TekdaqcCommunicationSession> mCommSessions;
+    /**
+     * Map of {@link com.tenkiv.tekdaqc.communication.ascii.ASCIICommunicationSession}s keyed by the associated board's serial number.
+     */
+    private Map<String, ASCIICommunicationSession> mCommSessions;
 
+    /**
+     * @link Looper} for the background thread.
+     */
     private Looper mServiceLooper;
+
+    /**
+     * {@link Handler} which allows for serialized processing of commands to this {@link Service} in the background.
+     */
     private ServiceHandler mServiceHandler;
+
+    /**
+     * Application local {@link Intent} broadcast manager.
+     */
     private LocalBroadcastManager mLocalBroadcastMgr;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        HandlerThread thread = new HandlerThread("TekDAQC Discovery Service", Process.THREAD_PRIORITY_BACKGROUND);
+        // Setup the background thread and its controls
+        HandlerThread thread = new HandlerThread("TekDAQC Communication Service", Process.THREAD_PRIORITY_BACKGROUND);
         thread.start();
 
         mServiceLooper = thread.getLooper();
         mServiceHandler = new ServiceHandler(mServiceLooper, this);
         mLocalBroadcastMgr = LocalBroadcastManager.getInstance(getApplicationContext());
 
-        mCommSessions = new ConcurrentHashMap<String, TekdaqcCommunicationSession>();
+        // Initialize the session map
+        mCommSessions = new ConcurrentHashMap<String, ASCIICommunicationSession>();
     }
 
     @Override
@@ -46,15 +73,16 @@ public class CommunicationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // Extract the service instruction
         final String action = intent.getAction();
-        Bundle extras = intent.getExtras();
 
+        // Build the message parameters
+        Bundle extras = intent.getExtras();
         if (extras == null)
             extras = new Bundle();
-
         extras.putString(TekCast.EXTRA_SERVICE_ACTION, action);
 
-        // Run each command in a separate thread.
+        // Run each task in a background thread.
         final Message msg = mServiceHandler.obtainMessage();
         msg.arg1 = startId;
         msg.setData(extras);
@@ -62,12 +90,33 @@ public class CommunicationService extends Service {
         return Service.START_NOT_STICKY;
     }
 
+    @Override
+    public void onDestroy() {
+        // Send shutdown action
+        Bundle extras = new Bundle();
+        extras.putString(TekCast.EXTRA_SERVICE_ACTION, ServiceAction.STOP.name());
+        final Message msg = mServiceHandler.obtainMessage();
+        msg.setData(extras);
+        mServiceHandler.sendMessage(msg);
+        super.onDestroy();
+    }
+
+    /**
+     * Broadcast through the application that a board has connected.
+     *
+     * @param serial {@link String} The serial number of the board which has connected.
+     */
     private void notifyOfBoardConnection(String serial) {
         final Intent intent = new Intent(TekCast.ACTION_BOARD_CONNECTED);
         intent.putExtra(TekCast.EXTRA_BOARD_SERIAL, serial);
         mLocalBroadcastMgr.sendBroadcast(intent);
     }
 
+    /**
+     * Broadcast through the application that a board has disconnected.
+     *
+     * @param serial {@link String} The serial number of the board which has disconnected.
+     */
     private void notifyOfBoardDisconnection(String serial) {
         final Intent intent = new Intent(TekCast.ACTION_BOARD_DISCONNECTED);
         intent.putExtra(TekCast.EXTRA_BOARD_SERIAL, serial);
@@ -104,15 +153,24 @@ public class CommunicationService extends Service {
     }
 
     /**
-     * Worker thread for handling incoming {@link DiscoveryService} {@link ServiceAction} requests.
+     * Worker thread {@link Handler} for handling incoming {@link DiscoveryService} {@link ServiceAction} requests.
      *
      * @author Jared Woolston (jwoolston@tenkiv.com)
      * @since 1.0.0.0
      */
     private static final class ServiceHandler extends Handler {
 
+        /**
+         * The {@link CommunicationService} which this {@link Handler} is serving.
+         */
         private CommunicationService mService;
 
+        /**
+         * Constructor
+         *
+         * @param looper {@link Looper} The worker thread's {@link Looper}.
+         * @param service {@link CommunicationService} The {@link CommunicationService} this {@link Handler} is serving.
+         */
         public ServiceHandler(Looper looper, CommunicationService service) {
             super(looper);
             mService = service;
@@ -121,58 +179,83 @@ public class CommunicationService extends Service {
         @SuppressWarnings("unchecked")
         @Override
         public void handleMessage(Message msg) {
+            // Fetch the task parameters
             final Bundle data = msg.getData();
             final ServiceAction action = ServiceAction.valueOf(data.getString(TekCast.EXTRA_SERVICE_ACTION));
             final ATekDAQC tekdaqc = ATekDAQC.getTekdaqcForSerial(data.getString(TekCast.EXTRA_BOARD_SERIAL));
             switch (action) {
                 case CONNECT:
+                    // Connect to a tekdaqc
                     Log.d(TAG, "Processing CONNECT message for Tekdaqc: " + tekdaqc);
-                    if (tekdaqc != null && !tekdaqc.isConnected()) {
-                        final TekdaqcCommunicationSession session = new TekdaqcCommunicationSession(tekdaqc);
+                    if (tekdaqc == null) {
+                        throw new IllegalArgumentException("Missing required board extra.");
+                    } else if (tekdaqc.isConnected()) {
+                        throw new IllegalStateException("Board " + tekdaqc.getSerialNumber() + " is already connected!");
+                    } else {
+                        // Create the communication session
+                        final ASCIICommunicationSession session = new ASCIICommunicationSession(tekdaqc);
                         try {
-                            session.connect();
+                            // Connect
+                            session.connect(CONNECTION_METHOD.ETHERNET);
+                            // Add this session to the session map
                             mService.mCommSessions.put(tekdaqc.getSerialNumber(), session);
+                            // Notify the application that the new board is connected
                             mService.notifyOfBoardConnection(tekdaqc.getSerialNumber());
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                    } else {
-                        throw new IllegalArgumentException("Missing required board extra.");
                     }
                     break;
                 case DISCONNECT:
+                    // Disconnect from a tekdaqc
                     Log.d(TAG, "Processing DISCONNECT message for Tekdaqc: " + tekdaqc);
-                    if (tekdaqc != null && tekdaqc.isConnected()) {
+                    if (tekdaqc == null) {
+                        throw new IllegalArgumentException("Missing required board extra.");
+                    } else if (!tekdaqc.isConnected()) {
+                        throw new IllegalStateException("Board " + tekdaqc.getSerialNumber() + " is already disconnected!");
+                    } else {
                         try {
-                            final TekdaqcCommunicationSession session = mService.mCommSessions.get(tekdaqc.getSerialNumber());
+                            // Retrieve the communication session
+                            final ASCIICommunicationSession session = mService.mCommSessions.get(tekdaqc.getSerialNumber());
                             if (session != null) {
+                                // Disconnect
                                 session.disconnect();
+                                // Remove the session from the map
+                                mService.mCommSessions.remove(tekdaqc.getSerialNumber());
+                                // Notify the application of the disconnect
                                 mService.notifyOfBoardDisconnection(tekdaqc.getSerialNumber());
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                    } else {
-                        throw new IllegalArgumentException("Missing required board extra.");
                     }
                     break;
                 case COMMAND:
-                    if (tekdaqc != null && tekdaqc.isConnected()) {
-                        final TekdaqcCommunicationSession session = mService.mCommSessions.get(tekdaqc.getSerialNumber());
-                        final BoardCommandBuilder command = (BoardCommandBuilder) data.getSerializable(TekCast.EXTRA_BOARD_COMMAND);
+                    // Issue a command to a tekdaqc
+                    if (tekdaqc == null) {
+                        throw new IllegalArgumentException("Missing required board extra.");
+                    } else if (!tekdaqc.isConnected()) {
+                        throw new IllegalStateException("Board " + tekdaqc.getSerialNumber() + " is not connected!");
+                    } else {
+                        final ASCIICommunicationSession session = mService.mCommSessions.get(tekdaqc.getSerialNumber());
+                        final ASCIICommand command = (ASCIICommand) data.getSerializable(TekCast.EXTRA_BOARD_COMMAND);
                         session.executeCommand(command);
                     }
                     break;
                 case STOP:
+                    // Stop execution of this service cleanly
                     for (String key : mService.mCommSessions.keySet()) {
                         try {
-                            final TekdaqcCommunicationSession session = mService.mCommSessions.get(key);
+                            // Disconnect from all known connected tekdaqc's.
+                            final ASCIICommunicationSession session = mService.mCommSessions.get(key);
                             session.disconnect();
                             mService.notifyOfBoardDisconnection(key);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
+                    mService.stopSelf();
+                    mService.mServiceLooper.quit();
                     break;
             }
         }

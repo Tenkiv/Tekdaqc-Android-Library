@@ -7,11 +7,19 @@ import android.os.Process;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import com.tenkiv.tekdaqc.ATekDAQC;
-import com.tenkiv.tekdaqc.locator.Locator;
-import com.tenkiv.tekdaqc.locator.LocatorParams;
 import com.tenkiv.tekdaqc.application.TekCast;
+import com.tenkiv.tekdaqc.locator.Locator;
+import com.tenkiv.tekdaqc.locator.Locator.OnATekDAQCDiscovered;
+import com.tenkiv.tekdaqc.locator.LocatorParams;
 
-public class DiscoveryService extends Service implements Locator.OnATekDAQCDiscovered {
+/**
+ * Android {@link Service} which searches for Tekdaqcs and notifies the application when it finds them.
+ *
+ * @author Ian Thomas (toxicbakery@gmail.com)
+ * @author Jared Woolston (jwoolston@tenkiv.com)
+ * @since v1.0.0.0
+ */
+public class DiscoveryService extends Service implements OnATekDAQCDiscovered {
 
 	private static final String TAG = "TelnetService";
 
@@ -22,17 +30,17 @@ public class DiscoveryService extends Service implements Locator.OnATekDAQCDisco
     /**
 	 * Processable actions by the {@link DiscoveryService}.
 	 * 
-	 * @author <a href=mailto:toxicbakery@gmail.com>Ian Thomas</a>
-	 * 
+	 * @author Ian Thomas (toxicbakery@gmail.com)
+	 * @since v1.0.0.0
 	 */
 	public static enum ServiceAction {
 		/**
-		 * Locate all TekDAQC boards on a local network with the optionally provided {@link com.tenkiv.tekdaqc.locator.LocatorParams}.
+		 * Locate all Tekdaqc boards on a local network with the optionally provided {@link LocatorParams}.
 		 */
 		SEARCH
 
 		/**
-		 * Force shutdown of the {@link TelnetService}.
+		 * Force shutdown of the {@link DiscoveryService}.
 		 */
 		, STOP;
 	}
@@ -52,21 +60,20 @@ public class DiscoveryService extends Service implements Locator.OnATekDAQCDisco
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-
+        // Extract the service instruction
         final String action = intent.getAction();
-        Bundle extras = intent.getExtras();
 
+        // Build the message parameters
+        Bundle extras = intent.getExtras();
         if (extras == null)
             extras = new Bundle();
-
         extras.putString(TekCast.EXTRA_SERVICE_ACTION, action);
 
-        // Run each command in a separate thread.
+        // Run each command in the background thread.
         final Message msg = mServiceHandler.obtainMessage();
         msg.arg1 = startId;
         msg.setData(extras);
         mServiceHandler.sendMessage(msg);
-
 		return START_NOT_STICKY;
 	}
 
@@ -89,6 +96,9 @@ public class DiscoveryService extends Service implements Locator.OnATekDAQCDisco
 
 	/**
 	 * Worker thread for handling incoming {@link DiscoveryService} {@link ServiceAction} requests.
+     *
+     * @author Ian Thomas (toxicbakery@gmail.com)
+     * @since v1.0.0.0
 	 */
 	private static final class ServiceHandler extends Handler {
 
@@ -107,6 +117,7 @@ public class DiscoveryService extends Service implements Locator.OnATekDAQCDisco
 
 			switch (action) {
 			case SEARCH:
+                // Search for Tekdaqcs
                 LocatorParams params = (LocatorParams) data.getSerializable(TekCast.EXTRA_LOCATOR_PARAMS);
                 if (params == null) {
                     params = LocatorParams.getDefaultInstance();
@@ -114,8 +125,9 @@ public class DiscoveryService extends Service implements Locator.OnATekDAQCDisco
                 Locator.searchForTekDAQCS(mService, params);
                 break;
 			case STOP:
+                // Stop this service
 				mService.stopSelf();
-				return;
+				break;
 			}
 		}
 	}

@@ -1,15 +1,17 @@
 package com.tenkiv.util;
 
+import android.content.Context;
+import android.net.wifi.WifiManager;
+import android.util.Log;
+
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteOrder;
 
-import android.content.Context;
-import android.net.wifi.WifiManager;
-import android.util.Log;
-
 public class WifiUtils {
+
+    private static final String TAG = "WifiUtils";
 
 	public static String wifiIpAddress(Context context) {
 		WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
@@ -26,7 +28,7 @@ public class WifiUtils {
 		try {
 			ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
 		} catch (UnknownHostException ex) {
-			Log.e("WIFIIP", "Unable to get host address.");
+			Log.e(TAG, "Unable to get host address.");
 			ipAddressString = null;
 		}
 
