@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import com.tenkiv.tekdaqc.ATekDAQC;
 import com.tenkiv.tekdaqc.communication.tasks.ITask;
+import com.tenkiv.tekdaqc.communication.tasks.ITaskComplete;
 import com.tenkiv.tekdaqc.locator.LocatorParams;
 import com.tenkiv.tekdaqc.services.CommunicationService.ServiceAction;
 
@@ -50,6 +51,16 @@ public interface TekCast {
      * A {@link ITask} instance
      */
     public static final String EXTRA_TASK = PACKAGE + "EXTRA_TASK";
+
+    /**
+     * A {@link ITaskComplete} instance
+     */
+    public static final String EXTRA_TASK_COMPLETE_CALLBACK = PACKAGE + "EXTRA_TASK_COMPLETE_CALLBACK";
+
+    /**
+     * Extra used for passing boolean success/error states
+     */
+    public static final String EXTRA_SUCCESS_ERROR_FLAG = PACKAGE + "EXTRA_SUCCESS_ERROR_FLAG";
 
     /**
      * The serial number of a {@link ATekDAQC}.

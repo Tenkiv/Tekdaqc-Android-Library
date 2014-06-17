@@ -12,6 +12,7 @@ import com.tenkiv.tekdaqc.application.TekCast;
 import com.tenkiv.tekdaqc.communication.ascii.ASCIICommunicationSession;
 import com.tenkiv.tekdaqc.communication.ascii.command.ASCIICommand;
 import com.tenkiv.tekdaqc.communication.tasks.ITask;
+import com.tenkiv.tekdaqc.communication.tasks.ITaskComplete;
 
 import java.io.IOException;
 import java.util.Map;
@@ -76,7 +77,7 @@ public class CommunicationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Extract the service instruction
         final String action = intent.getAction();
-
+        Log.d(TAG, "Received start command: " + action);
         // Build the message parameters
         Bundle extras = intent.getExtras();
         if (extras == null)
@@ -87,6 +88,7 @@ public class CommunicationService extends Service {
         final Message msg = mServiceHandler.obtainMessage();
         msg.arg1 = startId;
         msg.setData(extras);
+        Log.d(TAG, "Sending message to background thread.");
         mServiceHandler.sendMessage(msg);
         return Service.START_NOT_STICKY;
     }
@@ -256,9 +258,12 @@ public class CommunicationService extends Service {
                         throw new IllegalStateException("Board " + tekdaqc.getSerialNumber() + " is not connected!");
                     } else {
                         final ASCIICommunicationSession session = mService.mCommSessions.get(tekdaqc.getSerialNumber());
+                        Log.d(TAG, "Fetching task from bundle.");
                         final ITask task = (ITask) data.getSerializable(TekCast.EXTRA_TASK);
                         task.setSession(session);
-                        task.execute();
+                        Log.d(TAG, "Calling execute on task.");
+                        task.execute((ITaskComplete) data.getSerializable(TekCast.EXTRA_TASK_COMPLETE_CALLBACK));
+                        Log.d(TAG, "Resuming after executing task.");
                     }
                     break;
                 case STOP:
