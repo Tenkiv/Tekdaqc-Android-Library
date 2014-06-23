@@ -258,12 +258,10 @@ public class CommunicationService extends Service {
                         throw new IllegalStateException("Board " + tekdaqc.getSerialNumber() + " is not connected!");
                     } else {
                         final ASCIICommunicationSession session = mService.mCommSessions.get(tekdaqc.getSerialNumber());
-                        Log.d(TAG, "Fetching task from bundle.");
                         final ITask task = (ITask) data.getSerializable(TekCast.EXTRA_TASK);
                         task.setSession(session);
-                        Log.d(TAG, "Calling execute on task.");
+                        Log.d(TAG, "Calling execute on task: " + task);
                         task.execute((ITaskComplete) data.getSerializable(TekCast.EXTRA_TASK_COMPLETE_CALLBACK));
-                        Log.d(TAG, "Resuming after executing task.");
                     }
                     break;
                 case STOP:
