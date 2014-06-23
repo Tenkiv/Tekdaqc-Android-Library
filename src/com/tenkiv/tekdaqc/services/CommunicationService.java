@@ -55,6 +55,7 @@ public class CommunicationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d(TAG, "CommunicationService onCreate()");
 
         // Setup the background thread and its controls
         HandlerThread thread = new HandlerThread("TekDAQC Communication Service", Process.THREAD_PRIORITY_BACKGROUND);
@@ -184,7 +185,6 @@ public class CommunicationService extends Service {
             mService = service;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public void handleMessage(Message msg) {
             // Fetch the task parameters
@@ -204,15 +204,19 @@ public class CommunicationService extends Service {
                         final ASCIICommunicationSession session = new ASCIICommunicationSession(tekdaqc);
                         try {
                             // Connect
+                        	Log.d(TAG, "Calling session connect method.");
                             session.connect(CONNECTION_METHOD.ETHERNET);
                             // Add this session to the session map
+                            Log.d(TAG, "Adding session to the service session map.");
                             mService.mCommSessions.put(tekdaqc.getSerialNumber(), session);
                             // Notify the application that the new board is connected
+                            Log.d(TAG, "Notifying service of board connection.");
                             mService.notifyOfBoardConnection(tekdaqc.getSerialNumber());
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
+                    Log.d(TAG, "Returning from service connect message handler.");
                     break;
                 case DISCONNECT:
                     // Disconnect from a tekdaqc
