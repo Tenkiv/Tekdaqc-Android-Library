@@ -8,7 +8,6 @@ import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import com.tenkiv.tekdaqc.ATekDAQC;
-import com.tenkiv.tekdaqc.locator.Locator;
 import com.tenkiv.tekdaqc.services.DiscoveryService;
 import com.tenkiv.tekdaqc.locator.LocatorParams;
 
@@ -29,7 +28,6 @@ public class TekdaqcApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Locator.setDebug(true);
         Log.d(TAG, "onCreate()");
         mBoards = new ArrayList<ATekDAQC>();
         mDiscoveryReceiver = new DeviceDiscoveryReceiver(this);
@@ -40,6 +38,7 @@ public class TekdaqcApplication extends Application {
     public final void refreshDeviceList() {
         mBoards.clear();
         final LocatorParams.Builder builder = new LocatorParams.Builder();
+
 
         final Intent intent = new Intent(getApplicationContext(), DiscoveryService.class);
         intent.setAction(DiscoveryService.ServiceAction.SEARCH.toString());
