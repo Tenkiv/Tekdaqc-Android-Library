@@ -6,6 +6,7 @@ import android.os.*;
 import android.os.Process;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+
 import com.tenkiv.tekdaqc.ATekDAQC;
 import com.tenkiv.tekdaqc.ATekDAQC.CONNECTION_METHOD;
 import com.tenkiv.tekdaqc.application.TekCast;
@@ -15,6 +16,7 @@ import com.tenkiv.tekdaqc.communication.tasks.ITask;
 import com.tenkiv.tekdaqc.communication.tasks.ITaskComplete;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -126,6 +128,17 @@ public class CommunicationService extends Service {
         intent.putExtra(TekCast.EXTRA_BOARD_SERIAL, serial);
         mLocalBroadcastMgr.sendBroadcast(intent);
     }
+    
+    /**
+     * Broadcast through the application that a board connection has timed out.
+     * 
+     * @param serial {@link String} The serial number of the board which has timed out.
+     */
+    private void notifyOfBoardTimeout(String serial) {
+    	final Intent intent = new Intent(TekCast.ACTION_CONNECTION_TIMEOUT);
+    	intent.putExtra(TekCast.EXTRA_BOARD_SERIAL, serial);
+    	mLocalBroadcastMgr.sendBroadcast(intent);
+    }
 
     /**
      * Processable actions by the {@link CommunicationService}.
@@ -212,6 +225,9 @@ public class CommunicationService extends Service {
                             // Notify the application that the new board is connected
                             Log.d(TAG, "Notifying service of board connection.");
                             mService.notifyOfBoardConnection(tekdaqc.getSerialNumber());
+                        } catch (SocketTimeoutException e) {
+                        	e.printStackTrace();
+                        	mService.notifyOfBoardTimeout(tekdaqc.getSerialNumber());
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

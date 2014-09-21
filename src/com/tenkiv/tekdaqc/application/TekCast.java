@@ -41,6 +41,11 @@ public interface TekCast {
      * Broadcast action indicating that a {@link ATekDAQC} has disconnected.
      */
     public static final String ACTION_BOARD_DISCONNECTED = PACKAGE + "ACTION_BOARD_DISCONNECTED";
+    
+    /**
+     * Broadcast action indicating that a connection has timed out.
+     */
+    public static final String ACTION_CONNECTION_TIMEOUT = PACKAGE + "ACTION_CONNECTION_TIMEOUT";
 
 	/**
 	 * The {@link ServiceAction} to be processed by a service.
