@@ -15,15 +15,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by ideal on 6/7/14.
+ * Custom application class which handles aspects of the library in an Android specific manner.
+ * This primarily consists of device discovery.
+ *  
+ * @author Jared Woolston (jwoolston@tenkiv.com)
+ * @since v1.0.0.0
  */
 public class TekdaqcApplication extends Application {
 
-    private static final String TAG = "TekdaqcApplication";
+    private static final String TAG = "TekdaqcApplication"; // Logcat tag
 
-    private List<ATekDAQC> mBoards;
-    private DeviceDiscoveryReceiver mDiscoveryReceiver;
-    private LocalBroadcastManager mLocalBroadcastMgr;
+    private List<ATekDAQC> mBoards; // List of known Tekdaqcs
+    private DeviceDiscoveryReceiver mDiscoveryReceiver; // Broadcast receiver notified when a board is found by the locator
+    private LocalBroadcastManager mLocalBroadcastMgr; // Local broadcast manager for sending events
 
     @Override
     public void onCreate() {
@@ -35,17 +39,24 @@ public class TekdaqcApplication extends Application {
         mLocalBroadcastMgr.registerReceiver(mDiscoveryReceiver, new IntentFilter(TekCast.ACTION_FOUND_BOARD));
     }
 
+    /**
+     * Clears the known boards list and causes a new device locator packet to be sent.
+     */
     public final void refreshDeviceList() {
         mBoards.clear();
         final LocatorParams.Builder builder = new LocatorParams.Builder();
-
-
         final Intent intent = new Intent(getApplicationContext(), DiscoveryService.class);
         intent.setAction(DiscoveryService.ServiceAction.SEARCH.toString());
         intent.putExtra(TekCast.EXTRA_LOCATOR_PARAMS, builder.build());
         getApplicationContext().startService(intent);
     }
 
+    /**
+     * Broadcast receiver which will be called when the locator has discovered a board(s).
+     * 
+     * @author Jared Woolston (jwoolston@tenkiv.com)
+     * @since v1.0.0.0
+     */
     private static final class DeviceDiscoveryReceiver extends BroadcastReceiver {
 
         private final TekdaqcApplication mApplication;

@@ -21,7 +21,7 @@ import com.tenkiv.tekdaqc.locator.LocatorParams;
  */
 public class DiscoveryService extends Service implements OnATekDAQCDiscovered {
 
-	private static final String TAG = "TelnetService";
+	private static final String TAG = "TelnetService"; // Logcat tag
 
 	private Looper mServiceLooper;
 	private ServiceHandler mServiceHandler;
@@ -31,6 +31,7 @@ public class DiscoveryService extends Service implements OnATekDAQCDiscovered {
 	 * Processable actions by the {@link DiscoveryService}.
 	 * 
 	 * @author Ian Thomas (toxicbakery@gmail.com)
+	 * @author Jared Woolston (jwoolston@tenkiv.com)
 	 * @since v1.0.0.0
 	 */
 	public static enum ServiceAction {
@@ -98,6 +99,7 @@ public class DiscoveryService extends Service implements OnATekDAQCDiscovered {
 	 * Worker thread for handling incoming {@link DiscoveryService} {@link ServiceAction} requests.
      *
      * @author Ian Thomas (toxicbakery@gmail.com)
+     * @author Jared Woolston (jwoolston@tenkiv.com)
      * @since v1.0.0.0
 	 */
 	private static final class ServiceHandler extends Handler {
@@ -109,7 +111,6 @@ public class DiscoveryService extends Service implements OnATekDAQCDiscovered {
 			mService = service;
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public void handleMessage(Message msg) {
 			final Bundle data = msg.getData();
