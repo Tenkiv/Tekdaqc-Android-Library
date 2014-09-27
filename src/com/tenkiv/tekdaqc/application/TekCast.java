@@ -2,7 +2,7 @@ package com.tenkiv.tekdaqc.application;
 
 import android.content.Intent;
 import android.os.Bundle;
-import com.tenkiv.tekdaqc.ATekDAQC;
+import com.tenkiv.tekdaqc.ATekdaqc;
 import com.tenkiv.tekdaqc.communication.tasks.ITask;
 import com.tenkiv.tekdaqc.communication.tasks.ITaskComplete;
 import com.tenkiv.tekdaqc.locator.LocatorParams;
@@ -33,12 +33,12 @@ public interface TekCast {
     public static final String ACTION_SESSION_UPDATED = PACKAGE + "ACTION_SESSION_UPDATED";
 
     /**
-     * Broadcast action indicating that a {@link ATekDAQC} has connected.
+     * Broadcast action indicating that a {@link ATekdaqc} has connected.
      */
     public static final String ACTION_BOARD_CONNECTED = PACKAGE + "ACTION_BOARD_CONNECTED";
 
     /**
-     * Broadcast action indicating that a {@link ATekDAQC} has disconnected.
+     * Broadcast action indicating that a {@link ATekdaqc} has disconnected.
      */
     public static final String ACTION_BOARD_DISCONNECTED = PACKAGE + "ACTION_BOARD_DISCONNECTED";
     
@@ -68,7 +68,7 @@ public interface TekCast {
     public static final String EXTRA_SUCCESS_ERROR_FLAG = PACKAGE + "EXTRA_SUCCESS_ERROR_FLAG";
 
     /**
-     * The serial number of a {@link ATekDAQC}.
+     * The serial number of a {@link ATekdaqc}.
      */
     public static final String EXTRA_BOARD_SERIAL = PACKAGE + "EXTRA_BOARD_SERIAL";
 

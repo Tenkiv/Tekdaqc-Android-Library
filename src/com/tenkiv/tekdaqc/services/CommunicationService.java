@@ -7,8 +7,8 @@ import android.os.Process;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.tenkiv.tekdaqc.ATekDAQC;
-import com.tenkiv.tekdaqc.ATekDAQC.CONNECTION_METHOD;
+import com.tenkiv.tekdaqc.ATekdaqc;
+import com.tenkiv.tekdaqc.ATekdaqc.CONNECTION_METHOD;
 import com.tenkiv.tekdaqc.application.TekCast;
 import com.tenkiv.tekdaqc.communication.ascii.ASCIICommunicationSession;
 import com.tenkiv.tekdaqc.communication.ascii.command.ASCIICommand;
@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Android service for communicating with one or more Tekdaqcs. Handles connecting, disconnect, transmission of
- * ommands and receipt of messages/data.
+ * commands and receipt of messages/data.
  *
  * @author Jared Woolston (jwoolston@tenkiv.com)
  * @since v1.0.0.0
@@ -35,7 +35,7 @@ public class CommunicationService extends Service {
     protected static final String TAG = CommunicationService.class.getSimpleName();
 
     /**
-     * Map of {@link com.tenkiv.tekdaqc.communication.ascii.ASCIICommunicationSession}s keyed by the associated board's serial number.
+     * Map of {@link ASCIICommunicationSession}s keyed by the associated board's serial number.
      */
     private Map<String, ASCIICommunicationSession> mCommSessions;
 
@@ -141,7 +141,7 @@ public class CommunicationService extends Service {
     }
 
     /**
-     * Processable actions by the {@link CommunicationService}.
+     * Actions which can be processed by the {@link CommunicationService}.
      *
      * @author Ian Thomas (toxicbakery@gmail.com)
      * @author Jared Woolston (jwoolston@tenkiv.com)
@@ -149,17 +149,17 @@ public class CommunicationService extends Service {
      */
     public static enum ServiceAction {
         /**
-         * Connect to a specific TekDAQC board based on the information returned by the {@link DiscoveryService}.
+         * Connect to a specific Tekdaqc board based on the information returned by the {@link DiscoveryService}.
          */
         CONNECT,
 
         /**
-         * Disconnect from a specific TekDAQC board.
+         * Disconnect from a specific Tekdaqc board.
          */
         DISCONNECT,
 
         /**
-         * Issue a command to a specific TekDAQC board.
+         * Issue a command to a specific Tekdaqc board.
          */
         COMMAND,
 
@@ -203,7 +203,7 @@ public class CommunicationService extends Service {
             // Fetch the task parameters
             final Bundle data = msg.getData();
             final ServiceAction action = ServiceAction.valueOf(data.getString(TekCast.EXTRA_SERVICE_ACTION));
-            final ATekDAQC tekdaqc = ATekDAQC.getTekdaqcForSerial(data.getString(TekCast.EXTRA_BOARD_SERIAL));
+            final ATekdaqc tekdaqc = ATekdaqc.getTekdaqcForSerial(data.getString(TekCast.EXTRA_BOARD_SERIAL));
             switch (action) {
                 case CONNECT:
                     // Connect to a tekdaqc

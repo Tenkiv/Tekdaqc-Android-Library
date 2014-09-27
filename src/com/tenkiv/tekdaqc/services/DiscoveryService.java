@@ -6,10 +6,10 @@ import android.os.*;
 import android.os.Process;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import com.tenkiv.tekdaqc.ATekDAQC;
+import com.tenkiv.tekdaqc.ATekdaqc;
 import com.tenkiv.tekdaqc.application.TekCast;
 import com.tenkiv.tekdaqc.locator.Locator;
-import com.tenkiv.tekdaqc.locator.Locator.OnATekDAQCDiscovered;
+import com.tenkiv.tekdaqc.locator.Locator.OnTekdaqcDiscovered;
 import com.tenkiv.tekdaqc.locator.LocatorParams;
 
 /**
@@ -19,7 +19,7 @@ import com.tenkiv.tekdaqc.locator.LocatorParams;
  * @author Jared Woolston (jwoolston@tenkiv.com)
  * @since v1.0.0.0
  */
-public class DiscoveryService extends Service implements OnATekDAQCDiscovered {
+public class DiscoveryService extends Service implements OnTekdaqcDiscovered {
 
 	private static final String TAG = "TelnetService"; // Logcat tag
 
@@ -27,24 +27,6 @@ public class DiscoveryService extends Service implements OnATekDAQCDiscovered {
 	private ServiceHandler mServiceHandler;
     private LocalBroadcastManager mLocalBroadcastMgr;
 
-    /**
-	 * Processable actions by the {@link DiscoveryService}.
-	 * 
-	 * @author Ian Thomas (toxicbakery@gmail.com)
-	 * @author Jared Woolston (jwoolston@tenkiv.com)
-	 * @since v1.0.0.0
-	 */
-	public static enum ServiceAction {
-		/**
-		 * Locate all Tekdaqc boards on a local network with the optionally provided {@link LocatorParams}.
-		 */
-		SEARCH
-
-		/**
-		 * Force shutdown of the {@link DiscoveryService}.
-		 */
-		, STOP;
-	}
 
 	@Override
 	public void onCreate() {
@@ -89,11 +71,30 @@ public class DiscoveryService extends Service implements OnATekDAQCDiscovered {
 	}
 
     @Override
-    public void onDiscovery(ATekDAQC board) {
+    public void onDiscovery(ATekdaqc board) {
         final Intent intent = new Intent(TekCast.ACTION_FOUND_BOARD);
         intent.putExtra(TekCast.EXTRA_BOARD_SERIAL, board.getSerialNumber());
         mLocalBroadcastMgr.sendBroadcast(intent);
     }
+    
+    /**
+	 * Actions which can be processed by the {@link DiscoveryService}.
+	 * 
+	 * @author Ian Thomas (toxicbakery@gmail.com)
+	 * @author Jared Woolston (jwoolston@tenkiv.com)
+	 * @since v1.0.0.0
+	 */
+	public static enum ServiceAction {
+		/**
+		 * Locate all Tekdaqc boards on a local network with the optionally provided {@link LocatorParams}.
+		 */
+		SEARCH
+		
+		/**
+		 * Force shutdown of the {@link DiscoveryService}.
+		 */
+		, STOP;
+	}
 
 	/**
 	 * Worker thread for handling incoming {@link DiscoveryService} {@link ServiceAction} requests.
