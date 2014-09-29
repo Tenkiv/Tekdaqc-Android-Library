@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tenkiv.tekdaqc.services;
+package com.tenkiv.tekdaqc.android.services;
 
 import android.app.Service;
 import android.content.Intent;
@@ -24,7 +24,7 @@ import android.util.Log;
 
 import com.tenkiv.tekdaqc.ATekdaqc;
 import com.tenkiv.tekdaqc.ATekdaqc.CONNECTION_METHOD;
-import com.tenkiv.tekdaqc.application.TekCast;
+import com.tenkiv.tekdaqc.android.application.TekCast;
 import com.tenkiv.tekdaqc.communication.ascii.ASCIICommunicationSession;
 import com.tenkiv.tekdaqc.communication.ascii.command.ASCIICommand;
 import com.tenkiv.tekdaqc.communication.tasks.ITask;

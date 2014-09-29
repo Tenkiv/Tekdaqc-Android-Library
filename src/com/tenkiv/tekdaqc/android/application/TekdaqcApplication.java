@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tenkiv.tekdaqc.application;
+package com.tenkiv.tekdaqc.android.application;
 
 import android.app.Application;
 import android.content.BroadcastReceiver;
@@ -22,8 +22,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+
 import com.tenkiv.tekdaqc.ATekdaqc;
-import com.tenkiv.tekdaqc.services.DiscoveryService;
+import com.tenkiv.tekdaqc.android.services.DiscoveryService;
 import com.tenkiv.tekdaqc.locator.LocatorParams;
 
 import java.util.ArrayList;

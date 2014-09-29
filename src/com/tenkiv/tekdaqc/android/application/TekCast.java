@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tenkiv.tekdaqc.application;
+package com.tenkiv.tekdaqc.android.application;
 
 import android.content.Intent;
 import android.os.Bundle;
+
 import com.tenkiv.tekdaqc.ATekdaqc;
+import com.tenkiv.tekdaqc.android.services.CommunicationService.ServiceAction;
 import com.tenkiv.tekdaqc.communication.tasks.ITask;
 import com.tenkiv.tekdaqc.communication.tasks.ITaskComplete;
 import com.tenkiv.tekdaqc.locator.LocatorParams;
-import com.tenkiv.tekdaqc.services.CommunicationService.ServiceAction;
 
 /**
  * Container of {@link String}s for {@link Intent} and {@link Bundle} actions and extras.
