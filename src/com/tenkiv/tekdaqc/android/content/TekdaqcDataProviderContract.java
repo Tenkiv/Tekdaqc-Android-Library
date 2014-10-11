@@ -25,7 +25,7 @@ import android.net.Uri;
  */
 public interface TekdaqcDataProviderContract {
 
-    public static final String AUTHORITY = "com.tenkiv.android.tekdaqc.calibration.calibration_data.provider";
+    public static final String AUTHORITY = "com.tenkiv.tekdaqc.android.data.provider";
     public static final String BASE_PATH = "data";
     public static final String ANALOG_INPUT_DATA_PATH = BASE_PATH + "/analog_input";
     public static final String CALIBRATION_DATA_PATH = BASE_PATH + "/calibration";

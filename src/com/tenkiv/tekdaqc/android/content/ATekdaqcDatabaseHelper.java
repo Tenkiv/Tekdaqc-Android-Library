@@ -34,12 +34,12 @@ public abstract class ATekdaqcDatabaseHelper extends SQLiteOpenHelper {
 	/**
 	 * The default database name
 	 */
-    private static final String DEFAULT_DATABASE_NAME = "TEKDAQC_DATA.db";
+    public static final String DEFAULT_DATABASE_NAME = "TEKDAQC_DATA.db";
     
     /**
      * The default database file directory
      */
-    private static final String DEFAULT_FILE_DIR = Environment.getExternalStorageDirectory()
+    public static final String DEFAULT_FILE_DIR = Environment.getExternalStorageDirectory()
             + File.separator + "TEKDAQC_DATA" + File.separator;
     
     /**
@@ -90,7 +90,7 @@ public abstract class ATekdaqcDatabaseHelper extends SQLiteOpenHelper {
             + TekdaqcDataProviderContract.COLUMN_GAIN + " integer not null, "
             + TekdaqcDataProviderContract.COLUMN_RATE + " integer not null, "
             + TekdaqcDataProviderContract.COLUMN_BUFFER + " text not null, "
-            + TekdaqcDataProviderContract.COLUMN_SCALE + " text not null, "
+            + TekdaqcDataProviderContract.COLUMN_SCALE + " text not null"
     		+ ");";
     //@formatter:on
     

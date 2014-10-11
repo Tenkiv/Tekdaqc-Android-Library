@@ -68,9 +68,14 @@ public class TekdaqcDataProvider extends ContentProvider {
 			TekdaqcDataProviderContract.COLUMN_TIME, TekdaqcDataProviderContract.COLUMN_ANALOG_COUNTS,
 			TekdaqcDataProviderContract.COLUMN_GAIN, TekdaqcDataProviderContract.COLUMN_RATE, TekdaqcDataProviderContract.COLUMN_BUFFER,
 			TekdaqcDataProviderContract.COLUMN_SCALE };
+	
+	private static final String[] TEMPERATURE_COLUMNS = { TekdaqcDataProviderContract.COLUMN_ID,
+		TekdaqcDataProviderContract.COLUMN_SERIAL, TekdaqcDataProviderContract.COLUMN_TIMESTAMP,
+		TekdaqcDataProviderContract.COLUMN_TIME, TekdaqcDataProviderContract.COLUMN_TEMPERATURE};
 
 	private static final List<String> CALIBRATION_AVAILABLE_COLUMNS_LIST = Arrays.asList(CALIBRATION_AVAILABLE_COLUMNS);
 	private static final List<String> ANALOG_INPUT_AVAILABLE_COLUMNS_LIST = Arrays.asList(ANALOG_INPUT_AVAILABLE_COLUMNS);
+	private static final List<String> TEMPERATURE_COLUMNS_LIST = Arrays.asList(TEMPERATURE_COLUMNS);
 	private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 	private static final AtomicBoolean IS_HELPER_SET = new AtomicBoolean(false);
 	private static final String TAG = "TekdaqcDataProvider";
@@ -160,6 +165,8 @@ public class TekdaqcDataProvider extends ContentProvider {
 				queryBuilder.appendWhere(TekdaqcDataProviderContract.COLUMN_ID + "=" + uri.getLastPathSegment());
 				break;
 			case CALIBRATION_TEMPS:
+				// Set the table
+				queryBuilder.setTables(ATekdaqcDatabaseHelper.TABLE_CALIBRATION_DATA);
 				// Do a distinct temperature query
 				queryBuilder.setDistinct(true);
 				break;
@@ -297,6 +304,9 @@ public class TekdaqcDataProvider extends ContentProvider {
 			case CALIBRATION_DATA:
 			case CALIBRATION_DATA_POINT:
 				compare = CALIBRATION_AVAILABLE_COLUMNS_LIST;
+				break;
+			case CALIBRATION_TEMPS:
+				compare = TEMPERATURE_COLUMNS_LIST;
 				break;
 		}
 		if (projection != null) {
