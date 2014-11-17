@@ -123,6 +123,9 @@ public class TekdaqcDataProvider extends ContentProvider {
 		}
 	}
 
+	/**
+	 * @copydoc ContentProvider::onCreate()
+	 */
 	@Override
 	public synchronized boolean onCreate() {
 		try {
