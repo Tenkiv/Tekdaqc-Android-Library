@@ -57,8 +57,8 @@ public class TekdaqcDataProvider extends ContentProvider {
 	private static final String[] CALIBRATION_AVAILABLE_COLUMNS = { TekdaqcDataProviderContract.COLUMN_ID,
 			TekdaqcDataProviderContract.COLUMN_SERIAL, TekdaqcDataProviderContract.COLUMN_TIME, TekdaqcDataProviderContract.COLUMN_GAIN,
 			TekdaqcDataProviderContract.COLUMN_RATE, TekdaqcDataProviderContract.COLUMN_BUFFER, TekdaqcDataProviderContract.COLUMN_SCALE,
-			TekdaqcDataProviderContract.COLUMN_SELF_GAIN_CAL, TekdaqcDataProviderContract.COLUMN_SYSTEM_GAIN_CAL,
-			TekdaqcDataProviderContract.COLUMN_GAIN_CAL_DIFF, TekdaqcDataProviderContract.COLUMN_TEMPERATURE };
+			TekdaqcDataProviderContract.COLUMN_READ_VOLTAGE, TekdaqcDataProviderContract.COLUMN_NOMINAL_VOLATGE,
+			TekdaqcDataProviderContract.COLUMN_CORRECTION_FACTOR, TekdaqcDataProviderContract.COLUMN_TEMPERATURE };
 
 	/**
 	 * List of columns which are available for query/insert of analog input data
