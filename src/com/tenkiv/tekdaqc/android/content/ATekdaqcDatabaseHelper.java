@@ -72,9 +72,9 @@ public abstract class ATekdaqcDatabaseHelper extends SQLiteOpenHelper {
             + TekdaqcDataProviderContract.COLUMN_BUFFER + " text not null, "
             + TekdaqcDataProviderContract.COLUMN_SCALE + " text not null, "
             + TekdaqcDataProviderContract.COLUMN_TEMPERATURE + " real not null, "
-            + TekdaqcDataProviderContract.COLUMN_SELF_GAIN_CAL + " integer not null, "
-            + TekdaqcDataProviderContract.COLUMN_SYSTEM_GAIN_CAL + " integer not null, "
-            + TekdaqcDataProviderContract.COLUMN_GAIN_CAL_DIFF + " integer not null"
+            + TekdaqcDataProviderContract.COLUMN_READ_VOLTAGE + " real not null, "
+            + TekdaqcDataProviderContract.COLUMN_NOMINAL_VOLATGE + " real not null, "
+            + TekdaqcDataProviderContract.COLUMN_CORRECTION_FACTOR + " real not null"
             + ");";
     
     /**

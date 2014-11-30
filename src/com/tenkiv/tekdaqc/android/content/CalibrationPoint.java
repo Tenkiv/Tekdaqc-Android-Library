@@ -38,15 +38,15 @@ public class CalibrationPoint {
     private Rate mRate;
     private BUFFER_STATE mBuffer;
     private ANALOG_SCALE mScale;
-    private int mSelfGainCal;
-    private int mSystemGainCal;
-    private int mGainCalDifference;
+    private float mReadVoltage;
+    private float mNominalVoltage;
+    private float mCorrectionFactor;
     
-    public CalibrationPoint(String serial, long time, double temp, Gain gain, Rate rate, BUFFER_STATE buffer, ANALOG_SCALE scale, int selfGain, int systemGain, int gainDiff) {
-    	this(-1, serial, time, temp, gain, rate, buffer, scale, selfGain, systemGain, gainDiff);
+    public CalibrationPoint(String serial, long time, double temp, Gain gain, Rate rate, BUFFER_STATE buffer, ANALOG_SCALE scale, float read, float nominal, float factor) {
+    	this(-1, serial, time, temp, gain, rate, buffer, scale, read, nominal, factor);
     }
     
-    public CalibrationPoint(long id, String serial, long time, double temp, Gain gain, Rate rate, BUFFER_STATE buffer, ANALOG_SCALE scale,  int selfGain, int systemGain, int gainDiff) {
+    public CalibrationPoint(long id, String serial, long time, double temp, Gain gain, Rate rate, BUFFER_STATE buffer, ANALOG_SCALE scale,  float read, float nominal, float factor) {
     	mID = id;
     	mSerial = serial;
     	mTime = time;
@@ -55,9 +55,9 @@ public class CalibrationPoint {
     	mRate = rate;
     	mBuffer = buffer;
     	mScale = scale;
-    	mSelfGainCal = selfGain;
-    	mSystemGainCal = systemGain;
-    	mGainCalDifference = gainDiff;
+    	mReadVoltage = read;
+    	mNominalVoltage = nominal;
+    	mCorrectionFactor = factor;
     }
     
     public ContentValues toContentValues() {
@@ -70,9 +70,9 @@ public class CalibrationPoint {
 		values.put(TekdaqcDataProviderContract.COLUMN_SCALE, mScale.scale);
 		// We are writing the goal here to be as exact as possible
 		values.put(TekdaqcDataProviderContract.COLUMN_TEMPERATURE, mTemperature);
-		values.put(TekdaqcDataProviderContract.COLUMN_SELF_GAIN_CAL, mSelfGainCal);
-		values.put(TekdaqcDataProviderContract.COLUMN_SYSTEM_GAIN_CAL, mSystemGainCal);
-		values.put(TekdaqcDataProviderContract.COLUMN_GAIN_CAL_DIFF, mGainCalDifference);
+		values.put(TekdaqcDataProviderContract.COLUMN_READ_VOLTAGE, mReadVoltage);
+		values.put(TekdaqcDataProviderContract.COLUMN_NOMINAL_VOLATGE, mNominalVoltage);
+		values.put(TekdaqcDataProviderContract.COLUMN_CORRECTION_FACTOR, mCorrectionFactor);
 		return values;
     }
 
@@ -132,27 +132,27 @@ public class CalibrationPoint {
     	mScale = scale;
     }
 
-    public int getSelfGainCal() {
-        return mSelfGainCal;
+    public float getReadVoltage() {
+        return mReadVoltage;
     }
 
-    public void setSelfGainCal(int cal) {
-        mSelfGainCal = cal;
+    public void setReadVoltage(float volt) {
+        mReadVoltage = volt;
     }
 
-    public int getSystemGainCal() {
-        return mSystemGainCal;
+    public float getNominalVoltage() {
+        return mNominalVoltage;
     }
 
-    public void setSystemGainCal(int cal) {
-        mSystemGainCal = cal;
+    public void setNominalVoltage(float volt) {
+        mNominalVoltage = volt;
     }
 
-    public int getGainCalDifference() {
-        return mGainCalDifference;
+    public float getCorrectionFactor() {
+        return mCorrectionFactor;
     }
 
-    public void setGainCalDifference(int difference) {
-        mGainCalDifference = difference;
+    public void setCorrectionFactor(float factor) {
+        mCorrectionFactor = factor;
     }
 }

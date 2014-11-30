@@ -42,9 +42,9 @@ public interface TekdaqcDataProviderContract {
     public static final String COLUMN_BUFFER = "buffer";
     public static final String COLUMN_TEMPERATURE = "temperature";
     public static final String COLUMN_SCALE = "scale";
-    public static final String COLUMN_SELF_GAIN_CAL = "self_gain_cal";
-    public static final String COLUMN_SYSTEM_GAIN_CAL = "system_gain_cal";
-    public static final String COLUMN_GAIN_CAL_DIFF = "gain_cal_difference";
+    public static final String COLUMN_READ_VOLTAGE = "read_voltage";
+    public static final String COLUMN_NOMINAL_VOLATGE = "nominal_voltage";
+    public static final String COLUMN_CORRECTION_FACTOR = "correction_factor";
     public static final String COLUMN_ANALOG_COUNTS = "analog_counts";
     public static final String COLUMN_TIMESTAMP = "timestamp";
 }
