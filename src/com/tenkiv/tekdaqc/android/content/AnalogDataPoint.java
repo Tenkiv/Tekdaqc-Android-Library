@@ -14,12 +14,16 @@ public class AnalogDataPoint implements Externalizable {
 
 	private static final long serialVersionUID = 1L;
 	
+	private static final String TAG = "AnalogDataPoint";
+	
 	private AnalogInputData mData;
 	private String mSerial;
 	private ANALOG_SCALE mScale;
 	
 	public AnalogDataPoint(AnalogInputData data, String serial, ANALOG_SCALE scale) {
 		mData = data;
+		mSerial = serial;
+		mScale = scale;
 	}
 	
 	public ContentValues toContentValues() {

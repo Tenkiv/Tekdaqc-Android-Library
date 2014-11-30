@@ -200,6 +200,7 @@ public class TekdaqcDataProvider extends ContentProvider {
 		switch (uriType) {
 			case ANALOG_INPUT_DATA:
 				id = sqlDB.insert(ATekdaqcDatabaseHelper.TABLE_ANALOG_INPUT_DATA, null, values);
+				break;
 			case CALIBRATION_DATA:
 				id = sqlDB.insert(ATekdaqcDatabaseHelper.TABLE_CALIBRATION_DATA, null, values);
 				break;
