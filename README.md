@@ -14,17 +14,42 @@ The [Tekdaqc Android Manager](https://github.com/Tenkiv/Tekdaqc-Android-Manager)
 
 ### Setup
 
-1. Clone or download a copy of the Tekdaqc Android Library source code.
-2. Import the Tekdaqc Android Library project into Eclipse.
-3. In your project's settings, [add a library reference](https://developer.android.com/tools/projects/projects-eclipse.html#ReferencingLibraryProject) to Tekdaqc Android Library.
+Currently we only have Android Studio project files included with the repository. 
+
+* If using gradle, add the following line to your `dependencies` section of your build script:
+```gradle
+ provided 'com.tenkiv.tekdaqc.android:android-library:1.0.0.0'
+ ```
+* The associated Maven descriptor is:
+```xml 
+<dependency>
+  <groupId>com.tenkiv.tekdaqc.android</groupId>
+  <artifactId>android-library</artifactId>
+  <version>1.0.0.0</version>
+  <type>aar</type>
+</dependency>
+```
+
+Due to its dependency on the [Tekdaqc Java Library](https://github.com/Tenkiv/Tekdaqc-Java-Library), you will also need to add it as a dependency to your script:
+
+* For gradle:
+```gradle
+ provided 'com.tenkiv.tekdaqc:java-library:1.0.0.0'
+ ```
+
+* For Maven
+```xml
+<dependency>
+  <groupId>com.tenkiv.tekdaqc</groupId>
+  <artifactId>java-library</artifactId>
+  <version>1.0.0.0</version>
+</dependency>
+```
 
 ## More Information
 
 ### Other Tekdaqc GIT Repositories
 * [Tekdaqc Java Library](https://github.com/Tenkiv/Tekdaqc-Java-Library)
-* [Tekdaqc Threaded Java Library]()
-* [Tekdaqc Android Manager](https://github.com/Tenkiv/Tekdaqc-Android-Manager)
-* [Tekdaqc Manager](https://github.com/Tenkiv/Tekdaqc-Manager)
 * [Tekdaqc Firmware](https://github.com/Tenkiv/Tekdaqc-Firmware)
 
 ### Tekdaqc Manual
