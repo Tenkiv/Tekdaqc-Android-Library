@@ -4,6 +4,9 @@
     <facet type="android" name="Android">
       <configuration>
         <option name="LIBRARY_PROJECT" value="true" />
+        <proGuardCfgFiles>
+          <file>file:///Library/Java/JavaVirtualMachines/jdk1.8.0_25.jdk/Contents/Home/tools/proguard/proguard-android.txt</file>
+        </proGuardCfgFiles>
       </configuration>
     </facet>
   </component>
@@ -15,7 +18,7 @@
       <sourceFolder url="file://$MODULE_DIR$/library/src/androidTest/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/app/src/androidTest/java" isTestSource="false" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Android API 21 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="gson-2.2.4" level="project" />
     <orderEntry type="module-library">
