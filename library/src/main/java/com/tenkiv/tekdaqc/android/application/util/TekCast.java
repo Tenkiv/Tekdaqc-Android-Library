@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tenkiv.tekdaqc.android.application;
+package com.tenkiv.tekdaqc.android.application.util;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -42,6 +42,10 @@ public interface TekCast {
 	 * Broadcast action indicating a board has been found.
 	 */
 	public static final String ACTION_FOUND_BOARD = PACKAGE + "ACTION_FOUND_BOARD";
+
+    public static final String ACTION_FOUND_NEW_BOARD = PACKAGE + "ACTION_FOUND_NEW_BOARD";
+
+    public static final String ACTION_LOST_OLD_BOARD = PACKAGE + "ACTION_LOST_OLD_BOARD";
 
     /**
      * Broadcast action indicating that a session has been updated.
