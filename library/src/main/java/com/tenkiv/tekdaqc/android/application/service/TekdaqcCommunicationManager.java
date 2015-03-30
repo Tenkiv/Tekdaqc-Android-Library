@@ -9,7 +9,6 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.util.Log;
 import com.tenkiv.tekdaqc.ATekdaqc;
 import com.tenkiv.tekdaqc.android.application.util.ICommunicationListener;
 import com.tenkiv.tekdaqc.android.application.util.TekdaqcHandlerCall;
@@ -21,6 +20,8 @@ import com.tenkiv.tekdaqc.communication.data_points.DigitalOutputData;
 import com.tenkiv.tekdaqc.communication.message.ABoardMessage;
 import com.tenkiv.tekdaqc.communication.message.IMessageListener;
 import com.tenkiv.tekdaqc.communication.message.MessageBroadcaster;
+import com.tenkiv.tekdaqc.communication.tasks.ITask;
+import com.tenkiv.tekdaqc.communication.tasks.ITaskComplete;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,13 +29,15 @@ import java.util.List;
 /**
  * Created by Ellis Berry (ejberry@tenkiv.com)
  */
-public class TekdaqcCommunicationManager implements ServiceConnection, IMessageListener{
+public class TekdaqcCommunicationManager implements ServiceConnection, IMessageListener, ITaskComplete{
 
     private Context mContext;
 
     private ComService.ComServiceBinder mServiceBinder;
 
     private static ICommunicationListener mUserListener;
+
+    private static ITaskComplete mTaskCallBack;
 
     private static TekdaqcCommunicationManager mComManager;
 
@@ -89,6 +92,11 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
         mServiceBinder.getService().executeCommand(command);
     }
 
+    public void executeTaskCommand(ITask task, ITaskComplete callback){
+        mTaskCallBack = callback;
+        mServiceBinder.getService().executeTask(task);
+    }
+
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
         mServiceBinder = (ComService.ComServiceBinder) service;
@@ -139,6 +147,16 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
         mHandler.post(new TekdaqcDataHandlerRunnable(serial,data,mUserListener,TekdaqcHandlerCall.DIGITAL_O));
     }
 
+    @Override
+    public void onTaskSuccess() {
+        mHandler.post(new TekdaqcTaskRunnable(mTaskCallBack,TekdaqcHandlerCall.TASK_SUCCESS));
+    }
+
+    @Override
+    public void onTaskFailed() {
+        mHandler.post(new TekdaqcTaskRunnable(mTaskCallBack,TekdaqcHandlerCall.TASK_FAILED));
+    }
+
 
     public static class ComService extends Service {
 
@@ -152,6 +170,11 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
         public void executeCommand(ABoardCommand command){
             mSession.executeCommand(command);
+        }
+
+        public void executeTask(ITask task){
+            task.setSession(mSession);
+            task.execute(mComManager);
         }
 
         public void haltComService() throws IOException {

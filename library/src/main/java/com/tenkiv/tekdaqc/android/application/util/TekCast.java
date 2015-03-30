@@ -19,7 +19,6 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.tenkiv.tekdaqc.ATekdaqc;
-import com.tenkiv.tekdaqc.android.services.CommunicationService.ServiceAction;
 import com.tenkiv.tekdaqc.communication.tasks.ITask;
 import com.tenkiv.tekdaqc.communication.tasks.ITaskComplete;
 import com.tenkiv.tekdaqc.locator.LocatorParams;

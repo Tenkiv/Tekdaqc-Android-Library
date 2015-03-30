@@ -1,6 +1,7 @@
 package com.tenkiv.tekdaqc.android.application.service;
 
 import com.tenkiv.tekdaqc.ATekdaqc;
+import com.tenkiv.tekdaqc.android.application.service.TekdaqcCommunicationManager;
 import com.tenkiv.tekdaqc.android.application.util.ICommunicationListener;
 import com.tenkiv.tekdaqc.android.application.util.TekdaqcHandlerCall;
 import com.tenkiv.tekdaqc.communication.data_points.AnalogInputData;

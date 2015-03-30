@@ -8,14 +8,10 @@ import android.content.ServiceConnection;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
-import android.util.Log;
 import com.tenkiv.tekdaqc.ATekdaqc;
 import com.tenkiv.tekdaqc.android.application.util.TekdaqcHandlerCall;
 import com.tenkiv.tekdaqc.locator.Locator;
 import com.tenkiv.tekdaqc.locator.LocatorParams;
-
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Ellis Berry (ejberry@tenkiv.com)
@@ -79,18 +75,18 @@ public class TekdaqcLocatorManager implements ServiceConnection, Locator.OnTekda
     }
 
     @Override
-    public void onTekdaqcResponse(ATekdaqc board) {
-        mHandler.post(new TekdaqcLocatedHandlerRunnable(board, mUserListener, TekdaqcHandlerCall.REPOSNE));
+    public void onTekdaqcResponse(ATekdaqc tekdaqc) {
+        mHandler.post(new TekdaqcLocatedHandlerRunnable(tekdaqc, mUserListener, TekdaqcHandlerCall.REPOSNE));
     }
 
     @Override
-    public void onTekdaqcFirstLocated(ATekdaqc board) {
-        mHandler.post(new TekdaqcLocatedHandlerRunnable(board, mUserListener, TekdaqcHandlerCall.ADDED));
+    public void onTekdaqcFirstLocated(ATekdaqc tekdaqc) {
+        mHandler.post(new TekdaqcLocatedHandlerRunnable(tekdaqc, mUserListener, TekdaqcHandlerCall.ADDED));
     }
 
     @Override
-    public void onTekdaqcNoLongerLocated(ATekdaqc board) {
-        mHandler.post(new TekdaqcLocatedHandlerRunnable(board, mUserListener, TekdaqcHandlerCall.REMOVED));
+    public void onTekdaqcNoLongerLocated(ATekdaqc tekdaqc) {
+        mHandler.post(new TekdaqcLocatedHandlerRunnable(tekdaqc, mUserListener, TekdaqcHandlerCall.REMOVED));
     }
 
 
