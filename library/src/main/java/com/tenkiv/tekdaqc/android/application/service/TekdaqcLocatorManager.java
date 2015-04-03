@@ -116,7 +116,7 @@ public class TekdaqcLocatorManager implements ServiceConnection, Locator.OnTekda
                 e.printStackTrace();
             }
 
-            return super.onStartCommand(intent, flags, startId);
+            return Service.START_NOT_STICKY;
         }
 
         @Override
