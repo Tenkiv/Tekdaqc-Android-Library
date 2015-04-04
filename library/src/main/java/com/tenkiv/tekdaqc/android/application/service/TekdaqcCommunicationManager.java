@@ -1,5 +1,6 @@
 package com.tenkiv.tekdaqc.android.application.service;
 
+import android.app.ActivityManager;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
@@ -106,6 +107,16 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
         mHandler.post(new TekdaqcDataHandlerRunnable(mTekdaqc.getSerialNumber(), mTekdaqc, mUserListener, TekdaqcHandlerCall.DISCONNECTED));
 
+    }
+
+    public boolean isComServiceRunning() {
+        ActivityManager manager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (ComService.class.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void executeBoardCommand(ABoardCommand command) throws InterruptedException {

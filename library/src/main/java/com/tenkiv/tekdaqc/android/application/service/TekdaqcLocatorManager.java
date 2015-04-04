@@ -1,5 +1,6 @@
 package com.tenkiv.tekdaqc.android.application.service;
 
+import android.app.ActivityManager;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
@@ -72,6 +73,16 @@ public class TekdaqcLocatorManager implements ServiceConnection, Locator.OnTekda
         mServiceBinder.getService().haltLocator();
         mServiceBinder.getService().stopSelf();
 
+    }
+
+    public boolean isLocatorServiceRunning() {
+        ActivityManager manager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (LocatorService.class.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void setLocatorListener(Locator.OnTekdaqcDiscovered listener){
