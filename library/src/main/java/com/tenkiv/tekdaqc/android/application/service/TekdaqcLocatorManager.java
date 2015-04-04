@@ -47,7 +47,17 @@ public class TekdaqcLocatorManager implements ServiceConnection, Locator.OnTekda
 
     }
 
-    public synchronized void startLocatorService(long delay, long period){
+    public TekdaqcLocatorManager(Context context, LocatorParams params){
+
+        mThreadListener = this;
+        mContext = context;
+        mParams = params;
+
+        mHandler = new Handler(context.getMainLooper());
+
+    }
+
+    public void startLocatorService(long delay, long period){
         Intent locatorIntent = new Intent(mContext,LocatorService.class);
 
         locatorIntent.putExtra(MILLISECONDS_DELAY,delay);
@@ -58,10 +68,14 @@ public class TekdaqcLocatorManager implements ServiceConnection, Locator.OnTekda
 
     }
 
-    public synchronized void stopLocatorService(){
+    public void stopLocatorService(){
         mServiceBinder.getService().haltLocator();
         mServiceBinder.getService().stopSelf();
 
+    }
+
+    public void setLocatorListener(Locator.OnTekdaqcDiscovered listener){
+        mUserListener = listener;
     }
 
     @Override
