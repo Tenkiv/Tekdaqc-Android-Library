@@ -49,7 +49,23 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
 
     private TekdaqcCommunicationManager(Context context, ICommunicationListener listener, ATekdaqc tekdaqc){
+
         mUserListener = listener;
+
+        mContext = context;
+
+        mComManager = this;
+
+        mTekdaqc = tekdaqc;
+
+        final MessageBroadcaster broadcaster = MessageBroadcaster.getInstance();
+        broadcaster.registerListener(mTekdaqc.getSerialNumber(), this);
+
+        mHandler = new Handler(mContext.getMainLooper());
+
+    }
+
+    private TekdaqcCommunicationManager(Context context, ATekdaqc tekdaqc){
 
         mContext = context;
 
@@ -76,6 +92,10 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
         context.startService(comService);
 
 
+    }
+
+    public  void setCommunicationListener(ICommunicationListener listener){
+        mUserListener = listener;
     }
 
     public void stopCommunication() throws IOException {
