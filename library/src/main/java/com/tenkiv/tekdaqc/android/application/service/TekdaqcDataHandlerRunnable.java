@@ -67,13 +67,19 @@ public class TekdaqcDataHandlerRunnable implements Runnable{
                 break;
 
             case DIGITAL_O:
-                mListener.onDigitalOutputDataReceived(mSerial,(DigitalOutputData)mData);
+                mListener.onDigitalOutputDataReceived(mSerial,(ABoardMessage)mData);
                 break;
+
             case CONNECTED:
-                mListener.onTekdaqcConnected(mSerial,(TekdaqcCommunicationManager) mData);
+                mListener.onTekdaqcConnected(mSerial,(ATekdaqc) mData);
                 break;
+
             case DISCONNECTED:
                 mListener.onTekdaqcDisconnected(mSerial,(ATekdaqc) mData);
+                break;
+
+            case SERVICE_CONNECT:
+                mListener.onManagerServiceCreated((TekdaqcCommunicationManager)mData);
                 break;
         }
     }

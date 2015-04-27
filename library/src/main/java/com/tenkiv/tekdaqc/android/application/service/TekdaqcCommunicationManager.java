@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Binder;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import com.tenkiv.tekdaqc.ATekdaqc;
@@ -25,7 +24,9 @@ import com.tenkiv.tekdaqc.communication.tasks.ITask;
 import com.tenkiv.tekdaqc.communication.tasks.ITaskComplete;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Ellis Berry (ejberry@tenkiv.com)
@@ -44,70 +45,44 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
     private static Handler mHandler;
 
-    private ATekdaqc mTekdaqc;
+    private static ConcurrentHashMap<String,ArrayList<ICommunicationListener>> mListenerMap;
+    private static ConcurrentHashMap<String,ArrayList<ITaskComplete>> mTaskListenerMap;
 
     private static final String TEKDAQC_BOARD_EXTRA = "TEKDAQC_BOARD_EXTRA";
 
-
-    private TekdaqcCommunicationManager(Context context, ICommunicationListener listener, ATekdaqc tekdaqc){
-
+    private TekdaqcCommunicationManager(Context context,ICommunicationListener listener){
+        mContext = context;
+        mHandler = new Handler(mContext.getMainLooper());
         mUserListener = listener;
-
-        mContext = context;
-
         mComManager = this;
 
-        mTekdaqc = tekdaqc;
-
-        final MessageBroadcaster broadcaster = MessageBroadcaster.getInstance();
-        broadcaster.registerListener(mTekdaqc.getSerialNumber(), this);
-
-        mHandler = new Handler(mContext.getMainLooper());
-
-    }
-
-    private TekdaqcCommunicationManager(Context context, ATekdaqc tekdaqc){
-
-        mContext = context;
-
-        mComManager = this;
-
-        mTekdaqc = tekdaqc;
-
-        final MessageBroadcaster broadcaster = MessageBroadcaster.getInstance();
-        broadcaster.registerListener(mTekdaqc.getSerialNumber(), this);
-
-        mHandler = new Handler(mContext.getMainLooper());
-
-    }
-
-    public static void startCommunication(Context context, ICommunicationListener listener, ATekdaqc tekdaqc) throws InterruptedException {
-
-        TekdaqcCommunicationManager tekdaqcCommunicationManager = new TekdaqcCommunicationManager(context,listener,tekdaqc);
+        mListenerMap = new ConcurrentHashMap<>();
+        mTaskListenerMap = new ConcurrentHashMap<>();
 
         Intent comService = new Intent(context,ComService.class);
+        context.bindService(comService, this, Context.BIND_ALLOW_OOM_MANAGEMENT);
+        context.startService(comService);
+    }
 
-        comService.putExtra(TEKDAQC_BOARD_EXTRA, tekdaqc);
+    public static void startCommunicationService(Context context, ICommunicationListener listener){
 
+        TekdaqcCommunicationManager tekdaqcCommunicationManager = new TekdaqcCommunicationManager(context,listener);
+        Intent comService = new Intent(context,ComService.class);
         context.bindService(comService, tekdaqcCommunicationManager, Context.BIND_ALLOW_OOM_MANAGEMENT);
         context.startService(comService);
-
-
     }
 
-    public  void setCommunicationListener(ICommunicationListener listener){
-        mUserListener = listener;
-    }
 
-    public void stopCommunication() throws IOException {
+    //TODO UFM
+    /*public void stopCommunication() throws IOException {
 
         mServiceBinder.getService().executeCommand(mTekdaqc.disconnectCleanly());
         mServiceBinder.getService().haltComService();
         mServiceBinder.getService().stopSelf();
 
         mHandler.post(new TekdaqcDataHandlerRunnable(mTekdaqc.getSerialNumber(), mTekdaqc, mUserListener, TekdaqcHandlerCall.DISCONNECTED));
+    }*/
 
-    }
 
     public boolean isComServiceRunning() {
         ActivityManager manager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
@@ -119,69 +94,141 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
         return false;
     }
 
-    public void executeBoardCommand(ABoardCommand command) throws InterruptedException {
-        mServiceBinder.getService().executeCommand(command);
+
+    public void executeBoardCommand(String serial, ABoardCommand command) throws InterruptedException {
+        mServiceBinder.getService().executeCommand(serial,command);
     }
 
-    public void executeTaskCommand(ITask task, ITaskComplete callback){
+
+    public void executeTaskCommand(String serial, ITask task, ITaskComplete callback){
         mTaskCallBack = callback;
-        mServiceBinder.getService().executeTask(task);
+        mServiceBinder.getService().executeTask(serial,task);
     }
+
+
+    public void connectToTekdaqc(ATekdaqc tekdaqc, ICommunicationListener listener){
+
+        final MessageBroadcaster broadcaster = MessageBroadcaster.getInstance();
+        broadcaster.registerListener(tekdaqc.getSerialNumber(), this);
+
+        setCommunicationListener(tekdaqc.getSerialNumber(), listener);
+
+        mServiceBinder.getService().connectToTekdaqc(tekdaqc,listener);
+    }
+
+
+    public void disconnectFromTekdaqc(ATekdaqc tekdaqc, ICommunicationListener listener){
+        final MessageBroadcaster broadcaster = MessageBroadcaster.getInstance();
+        broadcaster.unRegisterListener(tekdaqc.getSerialNumber(), this);
+
+        mListenerMap.remove(tekdaqc.getSerialNumber());
+
+        try {
+            mServiceBinder.getService().haltComService(tekdaqc.getSerialNumber());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void setCommunicationListener(String serial, ICommunicationListener listener){
+
+        if(mListenerMap.containsKey(serial)){
+            mListenerMap.get(serial).add(listener);
+
+        }else{
+            ArrayList<ICommunicationListener> listenerArrayList = new ArrayList<>();
+            listenerArrayList.add(listener);
+            mListenerMap.put(serial,listenerArrayList);
+        }
+    }
+
+    public void removeCommunicationListener(String serial, ICommunicationListener listener){
+        mListenerMap.get(serial).remove(listener);
+    }
+
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
         mServiceBinder = (ComService.ComServiceBinder) service;
-
+        mHandler.post(new TekdaqcDataHandlerRunnable(null,mComManager,mUserListener,TekdaqcHandlerCall.SERVICE_CONNECT));
     }
+
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
     }
 
+
     @Override
     public void onErrorMessageReceived(String serial, ABoardMessage message) {
-        mHandler.post(new TekdaqcDataHandlerRunnable(serial, message, mUserListener, TekdaqcHandlerCall.ERROR));
+        for(ICommunicationListener listener: mListenerMap.get(serial)) {
+            mHandler.post(new TekdaqcDataHandlerRunnable(serial, message, listener, TekdaqcHandlerCall.ERROR));
+        }
     }
+
 
     @Override
     public void onStatusMessageReceived(String serial, ABoardMessage message) {
-        mHandler.post(new TekdaqcDataHandlerRunnable(serial,message,mUserListener,TekdaqcHandlerCall.STATUS));
+        for(ICommunicationListener listener: mListenerMap.get(serial)) {
+            mHandler.post(new TekdaqcDataHandlerRunnable(serial, message, listener, TekdaqcHandlerCall.STATUS));
+        }
     }
+
 
     @Override
     public void onDebugMessageReceived(String serial, ABoardMessage message) {
-        mHandler.post(new TekdaqcDataHandlerRunnable(serial, message, mUserListener, TekdaqcHandlerCall.DEBUG));
+        for(ICommunicationListener listener: mListenerMap.get(serial)) {
+            mHandler.post(new TekdaqcDataHandlerRunnable(serial, message, listener, TekdaqcHandlerCall.DEBUG));
+        }
     }
+
 
     @Override
     public void onCommandDataMessageReceived(String serial, ABoardMessage message) {
-        mHandler.post(new TekdaqcDataHandlerRunnable(serial,message,mUserListener,TekdaqcHandlerCall.COMMAND));
+        for(ICommunicationListener listener: mListenerMap.get(serial)) {
+            mHandler.post(new TekdaqcDataHandlerRunnable(serial, message, listener, TekdaqcHandlerCall.COMMAND));
+        }
     }
+
 
     @Override
     public void onAnalogInputDataReceived(String serial, AnalogInputData data) {
-        mHandler.post(new TekdaqcDataHandlerRunnable(serial,data,mUserListener,TekdaqcHandlerCall.ANALOG_S));
+        for(ICommunicationListener listener: mListenerMap.get(serial)) {
+            mHandler.post(new TekdaqcDataHandlerRunnable(serial, data, listener, TekdaqcHandlerCall.ANALOG_S));
+        }
     }
+
 
     @Override
     public void onAnalogInputDataReceived(String serial, List<AnalogInputData> data) {
-        mHandler.post(new TekdaqcDataHandlerRunnable(serial,data,mUserListener,TekdaqcHandlerCall.ANALOG_L));
+        for(ICommunicationListener listener: mListenerMap.get(serial)) {
+            mHandler.post(new TekdaqcDataHandlerRunnable(serial, data, listener, TekdaqcHandlerCall.ANALOG_L));
+        }
     }
+
 
     @Override
     public void onDigitalInputDataReceived(String serial, DigitalInputData data) {
-        mHandler.post(new TekdaqcDataHandlerRunnable(serial,data,mUserListener,TekdaqcHandlerCall.DIGITAL_I));
+        for(ICommunicationListener listener: mListenerMap.get(serial)) {
+            mHandler.post(new TekdaqcDataHandlerRunnable(serial, data, listener, TekdaqcHandlerCall.DIGITAL_I));
+        }
     }
 
+
     @Override
-    public void onDigitalOutputDataReceived(String serial, DigitalOutputData data) {
-        mHandler.post(new TekdaqcDataHandlerRunnable(serial,data,mUserListener,TekdaqcHandlerCall.DIGITAL_O));
+    public void onDigitalOutputDataReceived(String serial, ABoardMessage message) {
+        for(ICommunicationListener listener: mListenerMap.get(serial)) {
+            mHandler.post(new TekdaqcDataHandlerRunnable(serial, message, listener, TekdaqcHandlerCall.DIGITAL_O));
+        }
     }
+
 
     @Override
     public void onTaskSuccess() {
         mHandler.post(new TekdaqcTaskRunnable(mTaskCallBack,TekdaqcHandlerCall.TASK_SUCCESS));
     }
+
 
     @Override
     public void onTaskFailed() {
@@ -192,54 +239,42 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
     public static class ComService extends Service {
 
         private final IBinder mLocatorBinder = new ComServiceBinder();
-        private ASCIICommunicationSession mSession;
-        private ATekdaqc mTekdaqc;
+
+        private ConcurrentHashMap<String,ASCIICommunicationSession> mSessionMap;
+
 
         public ComService() {
             super();
         }
 
-        public void executeCommand(ABoardCommand command){
-            mSession.executeCommand(command);
+        public void executeCommand(String serial,ABoardCommand command){
+            mSessionMap.get(serial).executeCommand(command);
         }
 
-        public void executeTask(ITask task){
-            task.setSession(mSession);
+        public void executeTask(String serial, ITask task){
+            task.setSession(mSessionMap.get(serial));
             task.execute(mComManager);
         }
 
-        public void haltComService() throws IOException {
-            mSession.disconnect();
+        public void haltComService(String serial) throws IOException {
+            mSessionMap.get(serial).disconnect();
+        }
+
+        public void connectToTekdaqc(ATekdaqc tekdaqc, ICommunicationListener listener){
+
+            ASCIICommunicationSession session = new ASCIICommunicationSession(tekdaqc);
+            mSessionMap.put(tekdaqc.getSerialNumber(),session);
+            TekdaqcConnectionThread thread = new TekdaqcConnectionThread(session,mHandler,listener);
+            thread.setName("sessionThread");
+            thread.start();
+
         }
 
         @Override
         public int onStartCommand(Intent intent, int flags, int startId) {
-
-            if(intent!=null){
-                Bundle extras = intent.getExtras();
-                mTekdaqc = (ATekdaqc) extras.getSerializable(TEKDAQC_BOARD_EXTRA);
-                mSession = new ASCIICommunicationSession(mTekdaqc);
-
-                Thread sessionThread = new Thread(){
-
-                    @Override
-                    public void run() {
-                        super.run();
-                        try {
-                            mSession.connect(ATekdaqc.CONNECTION_METHOD.ETHERNET);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        mHandler.post(new TekdaqcDataHandlerRunnable(null, mComManager, mUserListener, TekdaqcHandlerCall.CONNECTED));
-                    }
-                };
-                sessionThread.setName("sessionThread");
-                sessionThread.start();
-
-
-
+            if(mSessionMap == null) {
+                mSessionMap = new ConcurrentHashMap<>();
             }
-
 
             return Service.START_NOT_STICKY;
         }

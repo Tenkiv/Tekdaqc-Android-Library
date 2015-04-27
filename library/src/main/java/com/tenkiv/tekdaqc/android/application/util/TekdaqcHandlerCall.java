@@ -18,5 +18,6 @@ public enum TekdaqcHandlerCall {
     CONNECTED,
     DISCONNECTED,
     TASK_SUCCESS,
-    TASK_FAILED
+    TASK_FAILED,
+    SERVICE_CONNECT
 }
