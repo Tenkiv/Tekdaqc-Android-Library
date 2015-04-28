@@ -16,5 +16,8 @@ public enum TekdaqcHandlerCall {
     STATUS,
     DEBUG,
     CONNECTED,
-    DISCONNECTED
+    DISCONNECTED,
+    TASK_SUCCESS,
+    TASK_FAILED,
+    SERVICE_CONNECT
 }

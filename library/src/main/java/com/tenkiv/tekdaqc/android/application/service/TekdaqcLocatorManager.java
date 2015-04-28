@@ -1,5 +1,6 @@
 package com.tenkiv.tekdaqc.android.application.service;
 
+import android.app.ActivityManager;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
@@ -8,14 +9,10 @@ import android.content.ServiceConnection;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
-import android.util.Log;
 import com.tenkiv.tekdaqc.ATekdaqc;
 import com.tenkiv.tekdaqc.android.application.util.TekdaqcHandlerCall;
 import com.tenkiv.tekdaqc.locator.Locator;
 import com.tenkiv.tekdaqc.locator.LocatorParams;
-
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Ellis Berry (ejberry@tenkiv.com)
@@ -51,7 +48,17 @@ public class TekdaqcLocatorManager implements ServiceConnection, Locator.OnTekda
 
     }
 
-    public synchronized void startLocatorService(long delay, long period){
+    public TekdaqcLocatorManager(Context context, LocatorParams params){
+
+        mThreadListener = this;
+        mContext = context;
+        mParams = params;
+
+        mHandler = new Handler(context.getMainLooper());
+
+    }
+
+    public void startLocatorService(long delay, long period){
         Intent locatorIntent = new Intent(mContext,LocatorService.class);
 
         locatorIntent.putExtra(MILLISECONDS_DELAY,delay);
@@ -62,10 +69,24 @@ public class TekdaqcLocatorManager implements ServiceConnection, Locator.OnTekda
 
     }
 
-    public synchronized void stopLocatorService(){
+    public void stopLocatorService(){
         mServiceBinder.getService().haltLocator();
         mServiceBinder.getService().stopSelf();
 
+    }
+
+    public boolean isLocatorServiceRunning() {
+        ActivityManager manager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (LocatorService.class.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void setLocatorListener(Locator.OnTekdaqcDiscovered listener){
+        mUserListener = listener;
     }
 
     @Override
@@ -79,18 +100,18 @@ public class TekdaqcLocatorManager implements ServiceConnection, Locator.OnTekda
     }
 
     @Override
-    public void onTekdaqcResponse(ATekdaqc board) {
-        mHandler.post(new TekdaqcLocatedHandlerRunnable(board, mUserListener, TekdaqcHandlerCall.REPOSNE));
+    public void onTekdaqcResponse(ATekdaqc tekdaqc) {
+        mHandler.post(new TekdaqcLocatedHandlerRunnable(tekdaqc, mUserListener, TekdaqcHandlerCall.REPOSNE));
     }
 
     @Override
-    public void onTekdaqcFirstLocated(ATekdaqc board) {
-        mHandler.post(new TekdaqcLocatedHandlerRunnable(board, mUserListener, TekdaqcHandlerCall.ADDED));
+    public void onTekdaqcFirstLocated(ATekdaqc tekdaqc) {
+        mHandler.post(new TekdaqcLocatedHandlerRunnable(tekdaqc, mUserListener, TekdaqcHandlerCall.ADDED));
     }
 
     @Override
-    public void onTekdaqcNoLongerLocated(ATekdaqc board) {
-        mHandler.post(new TekdaqcLocatedHandlerRunnable(board, mUserListener, TekdaqcHandlerCall.REMOVED));
+    public void onTekdaqcNoLongerLocated(ATekdaqc tekdaqc) {
+        mHandler.post(new TekdaqcLocatedHandlerRunnable(tekdaqc, mUserListener, TekdaqcHandlerCall.REMOVED));
     }
 
 
@@ -120,7 +141,7 @@ public class TekdaqcLocatorManager implements ServiceConnection, Locator.OnTekda
                 e.printStackTrace();
             }
 
-            return super.onStartCommand(intent, flags, startId);
+            return Service.START_NOT_STICKY;
         }
 
         @Override

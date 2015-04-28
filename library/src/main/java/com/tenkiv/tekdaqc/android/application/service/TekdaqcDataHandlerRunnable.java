@@ -1,6 +1,7 @@
 package com.tenkiv.tekdaqc.android.application.service;
 
 import com.tenkiv.tekdaqc.ATekdaqc;
+import com.tenkiv.tekdaqc.android.application.service.TekdaqcCommunicationManager;
 import com.tenkiv.tekdaqc.android.application.util.ICommunicationListener;
 import com.tenkiv.tekdaqc.android.application.util.TekdaqcHandlerCall;
 import com.tenkiv.tekdaqc.communication.data_points.AnalogInputData;
@@ -66,13 +67,19 @@ public class TekdaqcDataHandlerRunnable implements Runnable{
                 break;
 
             case DIGITAL_O:
-                mListener.onDigitalOutputDataReceived(mSerial,(DigitalOutputData)mData);
+                mListener.onDigitalOutputDataReceived(mSerial,(ABoardMessage)mData);
                 break;
+
             case CONNECTED:
-                mListener.onTekdaqcConnected(mSerial,(TekdaqcCommunicationManager) mData);
+                mListener.onTekdaqcConnected(mSerial,(ATekdaqc) mData);
                 break;
+
             case DISCONNECTED:
                 mListener.onTekdaqcDisconnected(mSerial,(ATekdaqc) mData);
+                break;
+
+            case SERVICE_CONNECT:
+                mListener.onManagerServiceCreated((TekdaqcCommunicationManager)mData);
                 break;
         }
     }

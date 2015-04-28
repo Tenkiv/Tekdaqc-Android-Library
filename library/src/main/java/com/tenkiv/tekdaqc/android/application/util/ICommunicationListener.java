@@ -9,7 +9,9 @@ import com.tenkiv.tekdaqc.communication.message.IMessageListener;
  */
 public interface ICommunicationListener extends IMessageListener {
 
-    public void onTekdaqcConnected(String serial, TekdaqcCommunicationManager communicationManager);
+    public void onManagerServiceCreated(TekdaqcCommunicationManager communicationManager);
+
+    public void onTekdaqcConnected(String serial, ATekdaqc tekdaqc);
 
     public void onTekdaqcDisconnected(String serial, ATekdaqc tekdaqc);
 }

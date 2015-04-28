@@ -19,11 +19,14 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 
 group = 'com.tenkiv.tekdaqc.android'
-version = VERSION_NAME
+version = "1.1.0.1-SNAPSHOT"
 if (version.endsWith('-SNAPSHOT')) {
     status = 'integration'
 } else {
     status = 'release'
+}
+repositories {
+    mavenLocal()
 }
 
 android {
@@ -49,7 +52,7 @@ android {
 
 dependencies {
     provided 'com.android.support:support-v13:21.0.0'
-    provided 'com.tenkiv.tekdaqc:java-library:1.1.0.0'
+    provided 'com.tenkiv.tekdaqc:java-library:1.1.0.1-SNAPSHOT'
     provided 'com.google.code.gson:gson:2.3.1'
 }
 
