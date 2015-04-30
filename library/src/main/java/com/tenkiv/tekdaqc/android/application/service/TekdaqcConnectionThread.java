@@ -31,7 +31,7 @@ public class TekdaqcConnectionThread extends Thread{
 
         try {
             mSession.connect(ATekdaqc.CONNECTION_METHOD.ETHERNET);
-            mHandler.post(new TekdaqcDataHandlerRunnable(mSession.getTekdaqc().getSerialNumber(), mSession.getTekdaqc(), mUserListener, TekdaqcHandlerCall.CONNECTED));
+            mHandler.post(new TekdaqcDataHandlerRunnable(mSession.getTekdaqc(), mSession.getTekdaqc(), mUserListener, TekdaqcHandlerCall.CONNECTED));
         } catch (IOException e) {
             e.printStackTrace();
         }

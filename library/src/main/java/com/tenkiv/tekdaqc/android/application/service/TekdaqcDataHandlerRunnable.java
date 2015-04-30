@@ -20,13 +20,13 @@ public class TekdaqcDataHandlerRunnable implements Runnable{
 
     private TekdaqcHandlerCall mCallType;
 
-    private String mSerial;
+    private ATekdaqc mTekdaqc;
 
     private Object mData;
 
-    protected TekdaqcDataHandlerRunnable(String serial, Object data, ICommunicationListener listener, TekdaqcHandlerCall callType){
+    protected TekdaqcDataHandlerRunnable(ATekdaqc tekdaqc, Object data, ICommunicationListener listener, TekdaqcHandlerCall callType){
 
-        mSerial = serial;
+        mTekdaqc = tekdaqc;
         mData = data;
         mListener = listener;
         mCallType = callType;
@@ -39,48 +39,45 @@ public class TekdaqcDataHandlerRunnable implements Runnable{
         switch(mCallType){
 
             case ANALOG_S:
-                mListener.onAnalogInputDataReceived(mSerial,(AnalogInputData)mData);
+                mListener.onAnalogInputDataReceived(mTekdaqc,(AnalogInputData)mData);
                 break;
 
             case ANALOG_L:
-                mListener.onAnalogInputDataReceived(mSerial,(List<AnalogInputData>)mData);
+                mListener.onAnalogInputDataReceived(mTekdaqc,(List<AnalogInputData>)mData);
                 break;
 
             case COMMAND:
-                mListener.onCommandDataMessageReceived(mSerial,(ABoardMessage)mData);
+                mListener.onCommandDataMessageReceived(mTekdaqc,(ABoardMessage)mData);
                 break;
 
             case DEBUG:
-                mListener.onDebugMessageReceived(mSerial,(ABoardMessage)mData);
+                mListener.onDebugMessageReceived(mTekdaqc,(ABoardMessage)mData);
                 break;
 
             case ERROR:
-                mListener.onErrorMessageReceived(mSerial,(ABoardMessage)mData);
+                mListener.onErrorMessageReceived(mTekdaqc,(ABoardMessage)mData);
                 break;
 
             case STATUS:
-                mListener.onStatusMessageReceived(mSerial,(ABoardMessage)mData);
+                mListener.onStatusMessageReceived(mTekdaqc,(ABoardMessage)mData);
                 break;
 
             case DIGITAL_I:
-                mListener.onDigitalInputDataReceived(mSerial,(DigitalInputData)mData);
+                mListener.onDigitalInputDataReceived(mTekdaqc,(DigitalInputData)mData);
                 break;
 
             case DIGITAL_O:
-                mListener.onDigitalOutputDataReceived(mSerial,(ABoardMessage)mData);
+                mListener.onDigitalOutputDataReceived(mTekdaqc,(ABoardMessage)mData);
                 break;
 
             case CONNECTED:
-                mListener.onTekdaqcConnected(mSerial,(ATekdaqc) mData);
+                mListener.onTekdaqcConnected(mTekdaqc);
                 break;
 
             case DISCONNECTED:
-                mListener.onTekdaqcDisconnected(mSerial,(ATekdaqc) mData);
+                mListener.onTekdaqcDisconnected(mTekdaqc);
                 break;
 
-            case SERVICE_CONNECT:
-                mListener.onManagerServiceCreated((TekdaqcCommunicationManager)mData);
-                break;
         }
     }
 }

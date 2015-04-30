@@ -52,7 +52,7 @@ android {
 
 dependencies {
     provided 'com.android.support:support-v13:21.0.0'
-    provided 'com.tenkiv.tekdaqc:java-library:1.1.0.1-SNAPSHOT'
+    provided 'com.tenkiv.tekdaqc:java-library:1.1.0.2-SNAPSHOT'
     provided 'com.google.code.gson:gson:2.3.1'
 }
 

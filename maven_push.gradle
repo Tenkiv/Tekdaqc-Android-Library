@@ -29,11 +29,11 @@ boolean isRelease() {
 }
 
 def getRepositoryUsername() {
-    return hasProperty('sonatype_user') ? sonatype_user : ""
+    return hasProperty('sonatype_user') ? sonatype_user : ''
 }
 
 def getRepositoryPassword() {
-    return hasProperty('sonatype_pass') ? sonatype_pass : ""
+    return hasProperty('sonatype_pass') ? sonatype_pass : ''
 }
 
 afterEvaluate { project ->
