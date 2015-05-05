@@ -17,6 +17,12 @@
             android:name=".application.service.TekdaqcCommunicationManager$ComService"
             android:exported="false"/>
 
+        <receiver android:name=".application.service.TekdaqcLocatorManager$LocatorReceiver" >
+            <intent-filter>
+                <action android:name="com.tenkiv.tekdaqc.LOCATOR" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

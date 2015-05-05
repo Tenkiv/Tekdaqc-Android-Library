@@ -101,4 +101,10 @@ public interface TekCast {
 	 */
 	public static final String EXTRA_LOCATOR_PARAMS = PACKAGE + "EXTRA_LOCATOR_PARAMS";
 
+    public static final int SERVICE_MSG_REGISTER = 0;
+
+    public static final int SERVICE_MSG_UNREGISTER = 1;
+
+    public static final int SERVICE_MSG_COMMAND = 2;
+
 }
