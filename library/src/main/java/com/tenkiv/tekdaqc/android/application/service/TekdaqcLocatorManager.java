@@ -81,11 +81,15 @@ public class TekdaqcLocatorManager implements ServiceConnection{
     }
 
     public void addLocatorListener(Locator.OnTekdaqcDiscovered listener){
-        mUserListeners.add(listener);
+        if(!mUserListeners.contains(listener)) {
+            mUserListeners.add(listener);
+        }
     }
 
     public void removeLocatorListener(Locator.OnTekdaqcDiscovered listener){
-        mUserListeners.remove(listener);
+        if(mUserListeners.contains(listener)) {
+            mUserListeners.remove(listener);
+        }
     }
 
     @Override

@@ -149,7 +149,9 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
     public void setCommunicationListener(String serial, ICommunicationListener listener){
 
         if(mListenerMap.containsKey(serial)){
-            mListenerMap.get(serial).add(listener);
+            if(!mListenerMap.get(serial).contains(listener)) {
+                mListenerMap.get(serial).add(listener);
+            }
 
         }else{
             ArrayList<ICommunicationListener> listenerArrayList = new ArrayList<>();
@@ -159,7 +161,9 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
     }
 
     public void removeCommunicationListener(String serial, ICommunicationListener listener){
-        mListenerMap.get(serial).remove(listener);
+        if(mListenerMap.get(serial).contains(listener)) {
+            mListenerMap.get(serial).remove(listener);
+        }
     }
 
 
