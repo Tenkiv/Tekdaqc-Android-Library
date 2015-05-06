@@ -85,9 +85,13 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
             Intent comService = new Intent(context, ComService.class);
             context.bindService(comService, mComManager, Context.BIND_ALLOW_OOM_MANAGEMENT);
             context.startService(comService);
-        }else{
+        }/*else{
             mHandler.post(new ServiceHandlerRunnable(listener,mComManager));
-        }
+        }*/
+    }
+
+    public static TekdaqcCommunicationManager getTekdaqcCommunicationsManager(){
+        return mComManager;
     }
 
 
