@@ -57,6 +57,10 @@ public class TekdaqcLocatorManager implements ServiceConnection{
 
     }
 
+    public void stopLocatorManager(){
+        mContext.unbindService(this);
+    }
+
     private void startLocatorService(){
         boolean isRunning = isLocatorServiceRunning(mContext);
         Intent locatorIntent = new Intent(mContext,LocatorService.class);
