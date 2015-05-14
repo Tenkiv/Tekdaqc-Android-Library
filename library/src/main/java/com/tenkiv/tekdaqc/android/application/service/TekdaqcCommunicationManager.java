@@ -46,10 +46,13 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
     private static Handler mHandler;
 
+    private static boolean mIsMainThreadCallback = true;
+
     private static ConcurrentHashMap<String,ArrayList<ICommunicationListener>> mListenerMap;
     private static ConcurrentHashMap<String,ArrayList<ITaskComplete>> mTaskListenerMap;
 
     private static final String TEKDAQC_BOARD_EXTRA = "TEKDAQC_BOARD_EXTRA";
+
 
     private TekdaqcCommunicationManager(Context context,IServiceListener listener){
 
@@ -79,6 +82,10 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
         }
     }
 
+    public static void setIsMainThreadCallback(boolean isTrue){
+        mIsMainThreadCallback = isTrue;
+    }
+
     public static void startCommunicationService(Context context, IServiceListener listener){
         if(mComManager == null) {
             mComManager = new TekdaqcCommunicationManager(context, listener);
@@ -96,14 +103,10 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
 
     //TODO UFM
-    /*public void stopCommunication() throws IOException {
+    public void stopCommunicationManager() throws IOException {
+        mContext.unbindService(this);
 
-        mServiceBinder.getService().executeCommand(mTekdaqc.disconnectCleanly());
-        mServiceBinder.getService().haltComService();
-        mServiceBinder.getService().stopSelf();
-
-        mHandler.post(new TekdaqcDataHandlerRunnable(mTekdaqc.getSerialNumber(), mTekdaqc, mUserListener, TekdaqcHandlerCall.DISCONNECTED));
-    }*/
+    }
 
 
     public static boolean isComServiceRunning(Context context) {
@@ -123,6 +126,19 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
 
     public void executeTaskCommand(String serial, ITask task, ITaskComplete callback){
+
+        //TODO IMPLEMENT TASKCALLBACK BY SERIAL
+        /*if(mTaskListenerMap.containsKey(serial)){
+            if(!mTaskListenerMap.get(serial).contains(callback)) {
+                mTaskListenerMap.get(serial).add(callback);
+            }
+
+        }else{
+            ArrayList<ITaskComplete> listenerArrayList = new ArrayList<>();
+            listenerArrayList.add(callback);
+            mTaskListenerMap.put(serial,listenerArrayList);
+        }*/
+
         mTaskCallBack = callback;
         mServiceBinder.getService().executeTask(serial,task);
     }
@@ -177,7 +193,12 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
         mServiceBinder = (ComService.ComServiceBinder) service;
-        mHandler.post(new ServiceHandlerRunnable(mServiceListener,mComManager));
+
+        if(mIsMainThreadCallback) {
+            mHandler.post(new ServiceHandlerRunnable(mServiceListener, mComManager));
+        }else{
+            mServiceListener.onManagerServiceCreated(mComManager);
+        }
     }
 
 
@@ -188,77 +209,133 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
     @Override
     public void onErrorMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
-            mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, message, listener, TekdaqcHandlerCall.ERROR));
+        if(mIsMainThreadCallback) {
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, message, listener, TekdaqcHandlerCall.ERROR));
+            }
+        }else{
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onErrorMessageReceived(tekdaqc,message);
+            }
         }
     }
 
 
     @Override
     public void onStatusMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
-            mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, message, listener, TekdaqcHandlerCall.STATUS));
+        if(mIsMainThreadCallback) {
+            for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
+                mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, message, listener, TekdaqcHandlerCall.STATUS));
+            }
+        }else{
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onStatusMessageReceived(tekdaqc, message);
+            }
         }
     }
 
 
     @Override
     public void onDebugMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
-            mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, message, listener, TekdaqcHandlerCall.DEBUG));
+        if(mIsMainThreadCallback) {
+            for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
+                mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, message, listener, TekdaqcHandlerCall.DEBUG));
+            }
+        }else{
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onDebugMessageReceived(tekdaqc, message);
+            }
         }
     }
 
 
     @Override
     public void onCommandDataMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
-            mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, message, listener, TekdaqcHandlerCall.COMMAND));
+        if(mIsMainThreadCallback) {
+            for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
+                mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, message, listener, TekdaqcHandlerCall.COMMAND));
+            }
+        }else{
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onCommandDataMessageReceived(tekdaqc, message);
+            }
         }
     }
 
 
     @Override
     public void onAnalogInputDataReceived(ATekdaqc tekdaqc, AnalogInputData data) {
-        for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
-            mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, data, listener, TekdaqcHandlerCall.ANALOG_S));
+        if(mIsMainThreadCallback) {
+            for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
+                mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, data, listener, TekdaqcHandlerCall.ANALOG_S));
+            }
+        }else{
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onAnalogInputDataReceived(tekdaqc, data);
+            }
         }
     }
 
 
     @Override
     public void onAnalogInputDataReceived(ATekdaqc tekdaqc, List<AnalogInputData> data) {
-        for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
-            mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, data, listener, TekdaqcHandlerCall.ANALOG_L));
+        if(mIsMainThreadCallback) {
+            for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
+                mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, data, listener, TekdaqcHandlerCall.ANALOG_L));
+            }
+        }else{
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onAnalogInputDataReceived(tekdaqc, data);
+            }
         }
     }
 
 
     @Override
     public void onDigitalInputDataReceived(ATekdaqc tekdaqc, DigitalInputData data) {
-        for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
-            mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, data, listener, TekdaqcHandlerCall.DIGITAL_I));
+        if(mIsMainThreadCallback) {
+            for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
+                mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, data, listener, TekdaqcHandlerCall.DIGITAL_I));
+            }
+        }else{
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onDigitalInputDataReceived(tekdaqc, data);
+            }
         }
     }
 
 
     @Override
     public void onDigitalOutputDataReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
-            mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, message, listener, TekdaqcHandlerCall.DIGITAL_O));
+        if(mIsMainThreadCallback) {
+            for(ICommunicationListener listener: mListenerMap.get(tekdaqc.getSerialNumber())) {
+                mHandler.post(new TekdaqcDataHandlerRunnable(tekdaqc, message, listener, TekdaqcHandlerCall.DIGITAL_O));
+            }
+        }else{
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onDigitalOutputDataReceived(tekdaqc, message);
+            }
         }
     }
 
 
     @Override
     public void onTaskSuccess() {
-        mHandler.post(new TekdaqcTaskRunnable(mTaskCallBack,TekdaqcHandlerCall.TASK_SUCCESS));
+        if(mIsMainThreadCallback) {
+            mHandler.post(new TekdaqcTaskRunnable(mTaskCallBack, TekdaqcHandlerCall.TASK_SUCCESS));
+        }else{
+            mTaskCallBack.onTaskSuccess();
+        }
     }
 
 
     @Override
     public void onTaskFailed() {
-        mHandler.post(new TekdaqcTaskRunnable(mTaskCallBack,TekdaqcHandlerCall.TASK_FAILED));
+        if(mIsMainThreadCallback) {
+            mHandler.post(new TekdaqcTaskRunnable(mTaskCallBack, TekdaqcHandlerCall.TASK_FAILED));
+        }else{
+            mTaskCallBack.onTaskFailed();
+        }
     }
 
 
