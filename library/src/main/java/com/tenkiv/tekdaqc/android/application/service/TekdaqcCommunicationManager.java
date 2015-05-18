@@ -9,6 +9,7 @@ import android.content.ServiceConnection;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 import com.tenkiv.tekdaqc.ATekdaqc;
 import com.tenkiv.tekdaqc.android.application.util.ICommunicationListener;
 import com.tenkiv.tekdaqc.android.application.util.IServiceListener;
@@ -17,7 +18,6 @@ import com.tenkiv.tekdaqc.communication.ascii.ASCIICommunicationSession;
 import com.tenkiv.tekdaqc.communication.command.ABoardCommand;
 import com.tenkiv.tekdaqc.communication.data_points.AnalogInputData;
 import com.tenkiv.tekdaqc.communication.data_points.DigitalInputData;
-import com.tenkiv.tekdaqc.communication.data_points.DigitalOutputData;
 import com.tenkiv.tekdaqc.communication.message.ABoardMessage;
 import com.tenkiv.tekdaqc.communication.message.IMessageListener;
 import com.tenkiv.tekdaqc.communication.message.MessageBroadcaster;
@@ -341,10 +341,21 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
     public static class ComService extends Service {
 
-        private final IBinder mLocatorBinder = new ComServiceBinder();
+        private final IBinder mComBinder = new ComServiceBinder();
 
         private ConcurrentHashMap<String,ASCIICommunicationSession> mSessionMap;
 
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+            Log.d("TCM","onDestroy");
+        }
+
+        @Override
+        public boolean onUnbind(Intent intent) {
+            return super.onUnbind(intent);
+
+        }
 
         public ComService() {
             super();
@@ -384,7 +395,7 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
         @Override
         public IBinder onBind(Intent intent) {
-            return mLocatorBinder;
+            return mComBinder;
         }
 
         public class ComServiceBinder extends Binder {
