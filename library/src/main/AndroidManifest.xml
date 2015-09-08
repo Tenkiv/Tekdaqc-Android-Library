@@ -10,11 +10,11 @@
         android:label="@string/app_name">
 
         <service
-            android:name=".application.service.TekdaqcLocatorManager$LocatorService"
+            android:name=".application.service.LocatorService"
             android:exported="false"/>
 
         <service
-            android:name=".application.service.TekdaqcCommunicationManager$ComService"
+            android:name=".application.service.CommunicationService"
             android:exported="false"/>
 
         <receiver android:name=".application.service.TekdaqcLocatorManager$LocatorReceiver" >

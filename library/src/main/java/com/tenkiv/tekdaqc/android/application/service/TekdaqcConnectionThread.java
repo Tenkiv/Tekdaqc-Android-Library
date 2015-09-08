@@ -8,9 +8,7 @@ import com.tenkiv.tekdaqc.communication.ascii.ASCIICommunicationSession;
 
 import java.io.IOException;
 
-/**
- * Created by ejberry on 4/18/15.
- */
+
 public class TekdaqcConnectionThread extends Thread{
 
     private ASCIICommunicationSession mSession;

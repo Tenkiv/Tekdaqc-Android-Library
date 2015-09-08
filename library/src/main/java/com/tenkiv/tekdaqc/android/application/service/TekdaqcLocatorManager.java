@@ -1,37 +1,23 @@
 package com.tenkiv.tekdaqc.android.application.service;
 
 import android.app.ActivityManager;
-import android.app.Service;
 import android.content.*;
 import android.os.*;
-import android.util.Log;
 import com.tenkiv.tekdaqc.ATekdaqc;
-import com.tenkiv.tekdaqc.android.application.util.TekdaqcHandlerCall;
+import com.tenkiv.tekdaqc.android.application.util.TekCast;
 import com.tenkiv.tekdaqc.locator.Locator;
-import com.tenkiv.tekdaqc.locator.LocatorParams;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-/**
- * Created by Ellis Berry (ejberry@tenkiv.com)
- */
+
 public class TekdaqcLocatorManager implements ServiceConnection{
 
-    private static final String BROADCAST_URI = "com.tenkiv.tekdaqc.LOCATOR";
-    private static final String BROADCAST_TEKDAQC = "LOCATED_TEKDAQC";
-    private static final String BROADCAST_CALL_TYPE = "LOCATED_CALL_TYPE";
-    private static final int LOCATOR_RESPONSE = 0;
-    private static final int LOCATOR_FIRST = 1;
-    private static final int LOCATOR_LOST = 2;
-
     private static boolean hasReceivedData = false;
-    private LocatorService.LocatorServiceBinder mServiceBinder;
 
-    private static final long DEFAULT_DELAY = 0;
-    private static final long DEFAULT_PERIOD = 3000;
+    private LocatorService.LocatorServiceBinder mServiceBinder;
 
     private static final int LOCATOR_CHECK_DELAY = 3500;
 
@@ -117,7 +103,7 @@ public class TekdaqcLocatorManager implements ServiceConnection{
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
-
+        mLocatorWatchdog.cancel();
     }
 
     public static class LocatorReceiver extends BroadcastReceiver{
@@ -127,7 +113,7 @@ public class TekdaqcLocatorManager implements ServiceConnection{
 
             Bundle bundle = intent.getExtras();
 
-            ATekdaqc tekdaqc = (ATekdaqc)intent.getExtras().get(BROADCAST_TEKDAQC);
+            ATekdaqc tekdaqc = (ATekdaqc)intent.getExtras().get(TekCast.BROADCAST_TEKDAQC);
 
             boolean locatedByForeignApp = !(ATekdaqc.getActiveTekdaqcMap().containsKey(tekdaqc.getSerialNumber()));
 
@@ -137,21 +123,21 @@ public class TekdaqcLocatorManager implements ServiceConnection{
 
                 cullListeners();
 
-                switch (bundle.getInt(BROADCAST_CALL_TYPE)) {
+                switch (bundle.getInt(TekCast.BROADCAST_CALL_TYPE)) {
 
-                    case LOCATOR_FIRST:
+                    case TekCast.LOCATOR_FIRST:
                         for(Locator.OnTekdaqcDiscovered listener: mUserListeners) {
                             listener.onTekdaqcFirstLocated(tekdaqc);
                         }
                         break;
 
-                    case LOCATOR_LOST:
+                    case TekCast.LOCATOR_LOST:
                         for(Locator.OnTekdaqcDiscovered listener: mUserListeners) {
                             listener.onTekdaqcNoLongerLocated(tekdaqc);
                         }
                         break;
 
-                    case LOCATOR_RESPONSE:
+                    case TekCast.LOCATOR_RESPONSE:
                         if(locatedByForeignApp){
                             ATekdaqc.putTekdaqcInMap(tekdaqc);
                             for(Locator.OnTekdaqcDiscovered listener: mUserListeners) {
@@ -175,94 +161,4 @@ public class TekdaqcLocatorManager implements ServiceConnection{
             }
         }
     }
-
-
-    public static class LocatorService extends Service implements Locator.OnTekdaqcDiscovered{
-
-        private final IBinder mLocatorBinder = new LocatorServiceBinder();
-        private Locator mLocator;
-        private boolean isLocatorRunning;
-
-        public LocatorService() {
-            super();
-        }
-
-        private void haltLocator(){
-            mLocator.cancelLocator();
-        }
-
-        public void startLocator(){
-            try {
-                if (!isLocatorRunning) {
-                    isLocatorRunning = true;
-                    mLocator = new Locator(null, this);
-                    mLocator.searchForTekDAQCS(
-                            DEFAULT_DELAY,
-                            DEFAULT_PERIOD);
-                }
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-        }
-
-
-        @Override
-        public void onDestroy() {
-            super.onDestroy();
-            if(isLocatorRunning){
-                haltLocator();
-                mLocatorWatchdog.cancel();
-            }
-        }
-
-
-        @Override
-        public boolean onUnbind(Intent intent) {
-            return super.onUnbind(intent);
-        }
-
-
-        @Override
-        public IBinder onBind(Intent intent) {
-            return mLocatorBinder;
-        }
-
-        @Override
-        public void onTekdaqcResponse(ATekdaqc board) {
-            Intent broadcast = new Intent(BROADCAST_URI);
-            broadcast.putExtra(BROADCAST_TEKDAQC, board);
-            broadcast.putExtra(BROADCAST_CALL_TYPE,LOCATOR_RESPONSE);
-            sendBroadcast(broadcast);
-        }
-
-        @Override
-        public void onTekdaqcFirstLocated(ATekdaqc board) {
-            Intent broadcast = new Intent(BROADCAST_URI);
-            broadcast.putExtra(BROADCAST_TEKDAQC, board);
-            broadcast.putExtra(BROADCAST_CALL_TYPE,LOCATOR_FIRST);
-            sendBroadcast(broadcast);
-
-        }
-
-        @Override
-        public void onTekdaqcNoLongerLocated(ATekdaqc board) {
-            Intent broadcast = new Intent(BROADCAST_URI);
-            broadcast.putExtra(BROADCAST_TEKDAQC, board);
-            broadcast.putExtra(BROADCAST_CALL_TYPE,LOCATOR_LOST);
-            sendBroadcast(broadcast);
-
-        }
-
-
-        public class LocatorServiceBinder extends Binder {
-
-            public LocatorService getService(){
-                return LocatorService.this;
-            }
-        }
-
-
-    }
-
-
 }

@@ -11,9 +11,7 @@ import com.tenkiv.tekdaqc.communication.message.ABoardMessage;
 
 import java.util.List;
 
-/**
- * Created by Ellis Berry (ejberry@tenkiv.com)
- */
+
 public class TekdaqcDataHandlerRunnable implements Runnable{
 
     private ICommunicationListener mListener;
