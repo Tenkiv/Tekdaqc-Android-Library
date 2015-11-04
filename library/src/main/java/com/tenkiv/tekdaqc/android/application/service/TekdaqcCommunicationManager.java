@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.*;
+import android.util.Log;
 import com.tenkiv.tekdaqc.ATekdaqc;
 import com.tenkiv.tekdaqc.Task;
 import com.tenkiv.tekdaqc.android.application.util.ICommunicationListener;
@@ -22,7 +23,10 @@ import com.tenkiv.tekdaqc.communication.tasks.ITaskComplete;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 public class TekdaqcCommunicationManager implements ServiceConnection, IMessageListener, ITaskComplete{
@@ -39,7 +43,7 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
     private ConcurrentHashMap<String,ArrayList<ICommunicationListener>> mListenerMap;
 
-    private ConcurrentHashMap<String,ITaskComplete> mTaskMap;
+    private ConcurrentHashMap<String,Queue<ITaskComplete>> mTaskMap;
 
 
     public TekdaqcCommunicationManager(Context context,IServiceListener listener){
@@ -54,8 +58,8 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
         mListenerMap = new ConcurrentHashMap<>();
 
-            Intent comService = new Intent(context, CommunicationService.class);
-            context.bindService(comService, this, Context.BIND_AUTO_CREATE);
+        Intent comService = new Intent(context, CommunicationService.class);
+        context.bindService(comService, this, Context.BIND_AUTO_CREATE);
 
     }
 
@@ -118,7 +122,12 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
             throw new NullPointerException();
         }
 
-        mTaskMap.put(serial,callback);
+        if (mTaskMap.get(serial) == null) {
+            Log.d("ComManager","Creating new TaskListenerQueue for serial:"+serial);
+            mTaskMap.put(serial,new ConcurrentLinkedQueue<ITaskComplete>());
+        }
+
+        mTaskMap.get(serial).add(callback);
 
         Bundle dataBundle = new Bundle();
         dataBundle.putString(TekCast.SERVICE_SERIAL_KEY, serial);
@@ -129,6 +138,7 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
         try {
             mService.send(msg);
+            Log.d("ComManager","Sent Task Message");
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -216,6 +226,7 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
         } catch (RemoteException e) {
             e.printStackTrace();
         }
+        mServiceListener.onManagerServiceCreated(this);
     }
 
 
@@ -291,15 +302,13 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
     @Override
     public void onTaskSuccess(ATekdaqc tekdaqc) {
-        mTaskMap.get(tekdaqc.getSerialNumber()).onTaskSuccess(tekdaqc);
-        mTaskMap.remove(tekdaqc.getSerialNumber());
+        mTaskMap.get(tekdaqc.getSerialNumber()).poll().onTaskSuccess(tekdaqc);
     }
 
 
     @Override
     public void onTaskFailed(ATekdaqc tekdaqc) {
-        mTaskMap.get(tekdaqc.getSerialNumber()).onTaskFailed(tekdaqc);
-        mTaskMap.remove(tekdaqc.getSerialNumber());
+        mTaskMap.get(tekdaqc.getSerialNumber()).poll().onTaskFailed(tekdaqc);
     }
 
 

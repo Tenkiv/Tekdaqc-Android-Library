@@ -26,7 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class CommunicationService extends Service implements IMessageListener, ITaskComplete{
 
-    private Messenger mComMessenger = new Messenger(new ServiceHandler());
+    private ServiceHandler mServiceHandler = new ServiceHandler();
+
+    private Messenger mComMessenger = new Messenger(mServiceHandler);
 
     private ConcurrentHashMap<String,Messenger> mMessengerMap = new ConcurrentHashMap<>();
 
@@ -68,53 +70,64 @@ public class CommunicationService extends Service implements IMessageListener, I
 
     }
 
+    public void disconnectFromTekdaqc(ATekdaqc tekdaqc, Messenger messenger){
+        mSessionMap.get(tekdaqc.getSerialNumber()).executeCommand(tekdaqc.halt());
+        mSessionMap.get(tekdaqc.getSerialNumber()).executeCommand(tekdaqc.disconnectCleanly());
+        mSessionMap.remove(tekdaqc.getSerialNumber());
+
+        Message message = Message.obtain();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(TekCast.SERVICE_TEKDAQC_DISCONNECT, tekdaqc);
+        message.setData(bundle);
+        message.what = TekCast.TEKDAQC_DISCONNECTED;
+        try {
+            messenger.send(message);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendMessageToRegisteredListeners(Message message){
+        for (Messenger messenger : mMessengerList) {
+            if (messenger != null) {
+                try {
+                    messenger.send(message);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                mMessengerList.remove(messenger);
+            }
+        }
+    };
+
     @Override
     public void onTaskSuccess(ATekdaqc tekdaqc) {
-
+        Log.d("ComServce","onTaskSuccess");
         if (mMessengerList.size() > 0) {
             Bundle dataBundle = new Bundle();
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc);
 
-            Message dataMessage = new Message();
+            Message dataMessage = Message.obtain();
             dataMessage.what = TekCast.TEKDAQC_TASK_COMPLETE;
             dataMessage.setData(dataBundle);
 
-            for (Messenger messenger : mMessengerList) {
-                if (messenger != null) {
-                    try {
-                        messenger.send(dataMessage);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                }else{
-                    mMessengerList.remove(messenger);
-                }
-            }
+            sendMessageToRegisteredListeners(dataMessage);
         }
     }
 
     @Override
     public void onTaskFailed(ATekdaqc tekdaqc) {
-
+        Log.d("ComServe","onTaskFailure");
         if (mMessengerList.size() > 0) {
             Bundle dataBundle = new Bundle();
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc);
 
-            Message dataMessage = new Message();
+            Message dataMessage = Message.obtain();
             dataMessage.what = TekCast.TEKDAQC_TASK_FAILURE;
             dataMessage.setData(dataBundle);
 
-            for (Messenger messenger : mMessengerList) {
-                if (messenger != null) {
-                    try {
-                        messenger.send(dataMessage);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                }else{
-                    mMessengerList.remove(messenger);
-                }
-            }
+            sendMessageToRegisteredListeners(dataMessage);
         }
     }
 
@@ -198,7 +211,7 @@ public class CommunicationService extends Service implements IMessageListener, I
                     break;
 
                 case TekCast.SERVICE_MSG_DISCONNECT:
-                    connectToTekdaqc((ATekdaqc)msg.getData().getSerializable(TekCast.SERVICE_TEKDAQC_CONNECT),msg.replyTo);
+                    disconnectFromTekdaqc((ATekdaqc) msg.getData().getSerializable(TekCast.SERVICE_TEKDAQC_CONNECT),msg.replyTo);
                     break;
 
             }
@@ -213,21 +226,11 @@ public class CommunicationService extends Service implements IMessageListener, I
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc);
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE, message);
 
-            Message dataMessage = new Message();
+            Message dataMessage = Message.obtain();
             dataMessage.what = TekCast.TEKDAQC_ERROR_MESSAGE;
             dataMessage.setData(dataBundle);
 
-            for (Messenger messenger : mMessengerList) {
-                if (messenger != null) {
-                    try {
-                        messenger.send(dataMessage);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                }else{
-                    mMessengerList.remove(messenger);
-                }
-            }
+            sendMessageToRegisteredListeners(dataMessage);
         }
     }
 
@@ -238,21 +241,11 @@ public class CommunicationService extends Service implements IMessageListener, I
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc);
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE, message);
 
-            Message dataMessage = new Message();
+            Message dataMessage = Message.obtain();
             dataMessage.what = TekCast.TEKDAQC_STATUS_MESSAGE;
             dataMessage.setData(dataBundle);
 
-            for (Messenger messenger : mMessengerList) {
-                if (messenger != null) {
-                    try {
-                        messenger.send(dataMessage);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                }else{
-                    mMessengerList.remove(messenger);
-                }
-            }
+            sendMessageToRegisteredListeners(dataMessage);
         }
     }
 
@@ -263,21 +256,11 @@ public class CommunicationService extends Service implements IMessageListener, I
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc);
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE, message);
 
-            Message dataMessage = new Message();
+            Message dataMessage = Message.obtain();
             dataMessage.what = TekCast.TEKDAQC_DEBUG_MESSAGE;
             dataMessage.setData(dataBundle);
 
-            for (Messenger messenger : mMessengerList) {
-                if (messenger != null) {
-                    try {
-                        messenger.send(dataMessage);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                }else{
-                    mMessengerList.remove(messenger);
-                }
-            }
+            sendMessageToRegisteredListeners(dataMessage);
         }
     }
 
@@ -288,21 +271,11 @@ public class CommunicationService extends Service implements IMessageListener, I
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc);
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE, message);
 
-            Message dataMessage = new Message();
+            Message dataMessage = Message.obtain();
             dataMessage.what = TekCast.TEKDAQC_COMMAND_MESSAGE;
             dataMessage.setData(dataBundle);
 
-            for (Messenger messenger : mMessengerList) {
-                if (messenger != null) {
-                    try {
-                        messenger.send(dataMessage);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                }else{
-                    mMessengerList.remove(messenger);
-                }
-            }
+            sendMessageToRegisteredListeners(dataMessage);
         }
     }
 
@@ -313,21 +286,11 @@ public class CommunicationService extends Service implements IMessageListener, I
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc);
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE, data);
 
-            Message dataMessage = new Message();
+            Message dataMessage = Message.obtain();
             dataMessage.what = TekCast.TEKDAQC_ANALOG_INPUT_MESSAGE;
             dataMessage.setData(dataBundle);
 
-            for (Messenger messenger : mMessengerList) {
-                if (messenger != null) {
-                    try {
-                        messenger.send(dataMessage);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                }else{
-                    mMessengerList.remove(messenger);
-                }
-            }
+            sendMessageToRegisteredListeners(dataMessage);
         }
     }
 
@@ -339,21 +302,11 @@ public class CommunicationService extends Service implements IMessageListener, I
                 dataBundle.putSerializable(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc);
                 dataBundle.putSerializable(TekCast.DATA_MESSSAGE, listData);
 
-                Message dataMessage = new Message();
+                Message dataMessage = Message.obtain();
                 dataMessage.what = TekCast.TEKDAQC_ANALOG_INPUT_MESSAGE;
                 dataMessage.setData(dataBundle);
 
-                for (Messenger messenger : mMessengerList) {
-                    if (messenger != null) {
-                        try {
-                            messenger.send(dataMessage);
-                        } catch (RemoteException e) {
-                            e.printStackTrace();
-                        }
-                    }else{
-                        mMessengerList.remove(messenger);
-                    }
-                }
+                sendMessageToRegisteredListeners(dataMessage);
             }
         }
     }
@@ -365,21 +318,11 @@ public class CommunicationService extends Service implements IMessageListener, I
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc);
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE, data);
 
-            Message dataMessage = new Message();
+            Message dataMessage = Message.obtain();
             dataMessage.what = TekCast.TEKDAQC_DIGITAL_INPUT_MESSAGE;
             dataMessage.setData(dataBundle);
 
-            for (Messenger messenger : mMessengerList) {
-                if (messenger != null) {
-                    try {
-                        messenger.send(dataMessage);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                }else{
-                    mMessengerList.remove(messenger);
-                }
-            }
+            sendMessageToRegisteredListeners(dataMessage);
         }
     }
 
@@ -390,21 +333,11 @@ public class CommunicationService extends Service implements IMessageListener, I
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc);
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE, message);
 
-            Message dataMessage = new Message();
+            Message dataMessage = Message.obtain();
             dataMessage.what = TekCast.TEKDAQC_DIGITAL_OUTPUT_MESSAGE;
             dataMessage.setData(dataBundle);
 
-            for (Messenger messenger : mMessengerList) {
-                if (messenger != null) {
-                    try {
-                        messenger.send(dataMessage);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                }else{
-                    mMessengerList.remove(messenger);
-                }
-            }
+            sendMessageToRegisteredListeners(dataMessage);
         }
     }
 
