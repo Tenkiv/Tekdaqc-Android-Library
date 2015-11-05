@@ -123,7 +123,6 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
         }
 
         if (mTaskMap.get(serial) == null) {
-            Log.d("ComManager","Creating new TaskListenerQueue for serial:"+serial);
             mTaskMap.put(serial,new ConcurrentLinkedQueue<ITaskComplete>());
         }
 
@@ -138,7 +137,6 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
         try {
             mService.send(msg);
-            Log.d("ComManager","Sent Task Message");
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -236,24 +234,39 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
     @Override
     public void onErrorMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-            listener.onErrorMessageReceived(tekdaqc,message);
+        try {
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onErrorMessageReceived(tekdaqc, message);
+            }
+        }catch (NullPointerException e){
+            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
+                    " This is likely due to disconnecting while samples were being parsed.");
         }
     }
 
 
     @Override
     public void onStatusMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-            listener.onStatusMessageReceived(tekdaqc, message);
+        try {
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onStatusMessageReceived(tekdaqc, message);
+            }
+        }catch (NullPointerException e){
+            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
+                    " This is likely due to disconnecting while samples were being parsed.");
         }
     }
 
 
     @Override
     public void onDebugMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-            listener.onDebugMessageReceived(tekdaqc, message);
+        try {
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onDebugMessageReceived(tekdaqc, message);
+            }
+        }catch (NullPointerException e){
+            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
+                    " This is likely due to disconnecting while samples were being parsed.");
         }
 
     }
@@ -261,41 +274,65 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
     @Override
     public void onCommandDataMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-            listener.onCommandDataMessageReceived(tekdaqc, message);
+        try {
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onCommandDataMessageReceived(tekdaqc, message);
+            }
+        }catch (NullPointerException e){
+            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
+                    " This is likely due to disconnecting while samples were being parsed.");
         }
     }
 
 
     @Override
     public void onAnalogInputDataReceived(ATekdaqc tekdaqc, AnalogInputData data) {
-        for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-            listener.onAnalogInputDataReceived(tekdaqc, data);
+        try {
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onAnalogInputDataReceived(tekdaqc, data);
+            }
+        }catch (NullPointerException e){
+            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
+                    " This is likely due to disconnecting while samples were being parsed.");
         }
     }
 
 
     @Override
     public void onAnalogInputDataReceived(ATekdaqc tekdaqc, List<AnalogInputData> data) {
-        for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-            listener.onAnalogInputDataReceived(tekdaqc, data);
+        try {
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onAnalogInputDataReceived(tekdaqc, data);
+            }
+        }catch (NullPointerException e){
+            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
+                    " This is likely due to disconnecting while samples were being parsed.");
         }
     }
 
 
     @Override
     public void onDigitalInputDataReceived(ATekdaqc tekdaqc, DigitalInputData data) {
-        for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-            listener.onDigitalInputDataReceived(tekdaqc, data);
+        try {
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onDigitalInputDataReceived(tekdaqc, data);
+            }
+        }catch (NullPointerException e){
+            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
+                    " This is likely due to disconnecting while samples were being parsed.");
         }
-
     }
 
 
     @Override
     public void onDigitalOutputDataReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-            listener.onDigitalOutputDataReceived(tekdaqc, message);
+        try {
+            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
+                listener.onDigitalOutputDataReceived(tekdaqc, message);
+            }
+        }catch (NullPointerException e){
+            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
+                    " This is likely due to disconnecting while samples were being parsed.");
         }
     }
 

@@ -103,7 +103,6 @@ public class CommunicationService extends Service implements IMessageListener, I
 
     @Override
     public void onTaskSuccess(ATekdaqc tekdaqc) {
-        Log.d("ComServce","onTaskSuccess");
         if (mMessengerList.size() > 0) {
             Bundle dataBundle = new Bundle();
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc);
@@ -118,7 +117,6 @@ public class CommunicationService extends Service implements IMessageListener, I
 
     @Override
     public void onTaskFailed(ATekdaqc tekdaqc) {
-        Log.d("ComServe","onTaskFailure");
         if (mMessengerList.size() > 0) {
             Bundle dataBundle = new Bundle();
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc);
@@ -211,7 +209,7 @@ public class CommunicationService extends Service implements IMessageListener, I
                     break;
 
                 case TekCast.SERVICE_MSG_DISCONNECT:
-                    disconnectFromTekdaqc((ATekdaqc) msg.getData().getSerializable(TekCast.SERVICE_TEKDAQC_CONNECT),msg.replyTo);
+                    disconnectFromTekdaqc((ATekdaqc) msg.getData().getSerializable(TekCast.SERVICE_TEKDAQC_DISCONNECT),msg.replyTo);
                     break;
 
             }
