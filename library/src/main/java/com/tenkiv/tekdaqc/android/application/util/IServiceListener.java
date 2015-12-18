@@ -7,6 +7,6 @@ import com.tenkiv.tekdaqc.android.application.service.TekdaqcCommunicationManage
  */
 public interface IServiceListener {
 
-    public void onManagerServiceCreated(TekdaqcCommunicationManager communicationManager);
+    void onManagerServiceCreated(TekdaqcCommunicationManager communicationManager);
 
 }

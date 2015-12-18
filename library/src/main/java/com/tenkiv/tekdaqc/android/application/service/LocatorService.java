@@ -15,8 +15,6 @@ public  class LocatorService extends Service implements Locator.OnTekdaqcDiscove
     private Locator mLocator;
     private boolean isLocatorRunning;
 
-
-
     public LocatorService() {
         super();
     }
@@ -63,7 +61,7 @@ public  class LocatorService extends Service implements Locator.OnTekdaqcDiscove
     @Override
     public void onTekdaqcResponse(ATekdaqc board) {
         Intent broadcast = new Intent(TekCast.BROADCAST_URI);
-        broadcast.putExtra(TekCast.BROADCAST_TEKDAQC, board);
+        broadcast.putExtra(TekCast.BROADCAST_TEKDAQC_RESPONSE, board.getLocatorResponse());
         broadcast.putExtra(TekCast.BROADCAST_CALL_TYPE,TekCast.LOCATOR_RESPONSE);
         sendBroadcast(broadcast);
     }
@@ -71,7 +69,7 @@ public  class LocatorService extends Service implements Locator.OnTekdaqcDiscove
     @Override
     public void onTekdaqcFirstLocated(ATekdaqc board) {
         Intent broadcast = new Intent(TekCast.BROADCAST_URI);
-        broadcast.putExtra(TekCast.BROADCAST_TEKDAQC, board);
+        broadcast.putExtra(TekCast.BROADCAST_TEKDAQC_RESPONSE, board.getLocatorResponse());
         broadcast.putExtra(TekCast.BROADCAST_CALL_TYPE,TekCast.LOCATOR_FIRST);
         sendBroadcast(broadcast);
 
@@ -80,7 +78,7 @@ public  class LocatorService extends Service implements Locator.OnTekdaqcDiscove
     @Override
     public void onTekdaqcNoLongerLocated(ATekdaqc board) {
         Intent broadcast = new Intent(TekCast.BROADCAST_URI);
-        broadcast.putExtra(TekCast.BROADCAST_TEKDAQC, board);
+        broadcast.putExtra(TekCast.BROADCAST_TEKDAQC_RESPONSE, board.getLocatorResponse());
         broadcast.putExtra(TekCast.BROADCAST_CALL_TYPE,TekCast.LOCATOR_LOST);
         sendBroadcast(broadcast);
 

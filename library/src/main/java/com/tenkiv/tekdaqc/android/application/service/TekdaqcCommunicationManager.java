@@ -8,11 +8,15 @@ import android.content.ServiceConnection;
 import android.os.*;
 import android.util.Log;
 import com.tenkiv.tekdaqc.ATekdaqc;
-import com.tenkiv.tekdaqc.Task;
+import com.tenkiv.tekdaqc.android.application.client.TaskQueuePlaceholder;
 import com.tenkiv.tekdaqc.android.application.util.ICommunicationListener;
 import com.tenkiv.tekdaqc.android.application.util.IServiceListener;
 import com.tenkiv.tekdaqc.android.application.util.TekCast;
-import com.tenkiv.tekdaqc.communication.command.ABoardCommand;
+import com.tenkiv.tekdaqc.communication.ascii.message.parsing.ASCIIDigitalOutputDataMessage;
+import com.tenkiv.tekdaqc.communication.command.queue.IQueueObject;
+import com.tenkiv.tekdaqc.communication.command.queue.QueueCallback;
+import com.tenkiv.tekdaqc.communication.command.queue.Task;
+import com.tenkiv.tekdaqc.communication.command.queue.values.ABaseQueueVal;
 import com.tenkiv.tekdaqc.communication.data_points.AnalogInputData;
 import com.tenkiv.tekdaqc.communication.data_points.DigitalInputData;
 import com.tenkiv.tekdaqc.communication.message.ABoardMessage;
@@ -21,15 +25,13 @@ import com.tenkiv.tekdaqc.communication.message.MessageBroadcaster;
 import com.tenkiv.tekdaqc.communication.tasks.ITaskComplete;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 
-public class TekdaqcCommunicationManager implements ServiceConnection, IMessageListener, ITaskComplete{
+public class TekdaqcCommunicationManager implements ServiceConnection, IMessageListener{
 
     private Context mContext;
 
@@ -41,12 +43,16 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
     private Messenger mMessenger = new Messenger(new ClientHandler());
 
-    private ConcurrentHashMap<String,ArrayList<ICommunicationListener>> mListenerMap;
+    private ConcurrentHashMap<String,ATekdaqc> mTekdaqcMap;
 
-    private ConcurrentHashMap<String,Queue<ITaskComplete>> mTaskMap;
+    private ConcurrentHashMap<String,ArrayList<IMessageListener>> mListenerMap;
+
+    private ConcurrentHashMap<Double,QueueCallback> mTaskMap;
+
+    private static volatile double mUIDAssign = 0;
 
 
-    public TekdaqcCommunicationManager(Context context,IServiceListener listener){
+    private TekdaqcCommunicationManager(Context context,IServiceListener listener){
 
         mContext = context;
 
@@ -54,9 +60,11 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
         mComManager = this;
 
-        mTaskMap = new ConcurrentHashMap<>();
+        mTekdaqcMap = new ConcurrentHashMap<>();
 
         mListenerMap = new ConcurrentHashMap<>();
+
+        mTaskMap = new ConcurrentHashMap<>();
 
         Intent comService = new Intent(context, CommunicationService.class);
         context.bindService(comService, this, Context.BIND_AUTO_CREATE);
@@ -68,6 +76,8 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
         if(mComManager == null) {
             mComManager = new TekdaqcCommunicationManager(context, listener);
 
+        }else{
+            listener.onManagerServiceCreated(mComManager);
         }
     }
 
@@ -95,7 +105,7 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
     }
 
 
-    public void executeBoardCommand(String serial, ABoardCommand command) throws InterruptedException {
+    public void executeCommand(String serial, IQueueObject command) throws InterruptedException {
 
         if(command == null){
             throw new NullPointerException();
@@ -116,21 +126,25 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
     }
 
 
-    public void executeTaskCommand(String serial, Task task, ITaskComplete callback){
+    public void executeTask(String serial, Task task){
 
         if(task == null){
             throw new NullPointerException();
         }
 
-        if (mTaskMap.get(serial) == null) {
-            mTaskMap.put(serial,new ConcurrentLinkedQueue<ITaskComplete>());
-        }
+        List<IQueueObject> commandList = task.getCommandList();
 
-        mTaskMap.get(serial).add(callback);
+        for(IQueueObject object:commandList){
+            if(object instanceof QueueCallback){
+                mTaskMap.put(mUIDAssign, (QueueCallback) object);
+                ((QueueCallback) object).setUID(mUIDAssign);
+                mUIDAssign++;
+            }
+        }
 
         Bundle dataBundle = new Bundle();
         dataBundle.putString(TekCast.SERVICE_SERIAL_KEY, serial);
-        dataBundle.putSerializable(TekCast.SERVICE_TASK_KEY,task);
+        dataBundle.putSerializable(TekCast.SERVICE_TASK_KEY,(Serializable) commandList);
         Message msg = Message.obtain(null,TekCast.SERVICE_MSG_TASK);
         msg.setData(dataBundle);
         msg.replyTo = mMessenger;
@@ -143,16 +157,16 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
     }
 
 
-    public void connectToTekdaqc(ATekdaqc tekdaqc, ICommunicationListener listener){
+    public void connectToTekdaqc(ATekdaqc tekdaqc){
 
         if(tekdaqc == null){
             throw new NullPointerException();
         }
 
-        setCommunicationListener(tekdaqc.getSerialNumber(), listener);
+        mTekdaqcMap.put(tekdaqc.getSerialNumber(),tekdaqc);
 
         Bundle dataBundle = new Bundle();
-        dataBundle.putSerializable(TekCast.SERVICE_TEKDAQC_CONNECT,tekdaqc);
+        dataBundle.putSerializable(TekCast.SERVICE_TEKDAQC_CONNECT,tekdaqc.getLocatorResponse());
         Message msg = Message.obtain(null,TekCast.SERVICE_MSG_CONNECT);
         msg.setData(dataBundle);
         msg.replyTo = mMessenger;
@@ -174,8 +188,6 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
         final MessageBroadcaster broadcaster = MessageBroadcaster.getInstance();
         broadcaster.unRegisterListener(tekdaqc, this);
 
-        mListenerMap.remove(tekdaqc.getSerialNumber());
-
         Bundle dataBundle = new Bundle();
         dataBundle.putSerializable(TekCast.SERVICE_TEKDAQC_DISCONNECT,tekdaqc);
         Message msg = Message.obtain(null,TekCast.SERVICE_MSG_DISCONNECT);
@@ -190,7 +202,7 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
     }
 
 
-    public void setCommunicationListener(String serial, ICommunicationListener listener){
+    public void setCommunicationListener(String serial, IMessageListener listener){
 
         if(mListenerMap.containsKey(serial)){
             if(!mListenerMap.get(serial).contains(listener)) {
@@ -198,7 +210,7 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
             }
 
         }else{
-            ArrayList<ICommunicationListener> listenerArrayList = new ArrayList<>();
+            ArrayList<IMessageListener> listenerArrayList = new ArrayList<>();
             listenerArrayList.add(listener);
             mListenerMap.put(serial,listenerArrayList);
         }
@@ -234,118 +246,45 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
     @Override
     public void onErrorMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        try {
-            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-                listener.onErrorMessageReceived(tekdaqc, message);
-            }
-        }catch (NullPointerException e){
-            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
-                    " This is likely due to disconnecting while samples were being parsed.");
-        }
+        MessageBroadcaster.getInstance().broadcastMessage(tekdaqc,message);
     }
 
 
     @Override
     public void onStatusMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        try {
-            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-                listener.onStatusMessageReceived(tekdaqc, message);
-            }
-        }catch (NullPointerException e){
-            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
-                    " This is likely due to disconnecting while samples were being parsed.");
-        }
+        MessageBroadcaster.getInstance().broadcastMessage(tekdaqc,message);
     }
 
 
     @Override
     public void onDebugMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        try {
-            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-                listener.onDebugMessageReceived(tekdaqc, message);
-            }
-        }catch (NullPointerException e){
-            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
-                    " This is likely due to disconnecting while samples were being parsed.");
-        }
+        MessageBroadcaster.getInstance().broadcastMessage(tekdaqc,message);
 
     }
 
 
     @Override
     public void onCommandDataMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        try {
-            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-                listener.onCommandDataMessageReceived(tekdaqc, message);
-            }
-        }catch (NullPointerException e){
-            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
-                    " This is likely due to disconnecting while samples were being parsed.");
-        }
+        MessageBroadcaster.getInstance().broadcastMessage(tekdaqc,message);
     }
 
 
     @Override
     public void onAnalogInputDataReceived(ATekdaqc tekdaqc, AnalogInputData data) {
-        try {
-            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-                listener.onAnalogInputDataReceived(tekdaqc, data);
-            }
-        }catch (NullPointerException e){
-            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
-                    " This is likely due to disconnecting while samples were being parsed.");
-        }
+        MessageBroadcaster.getInstance().broadcastAnalogInputDataPoint(tekdaqc,data);
     }
 
-
-    @Override
-    public void onAnalogInputDataReceived(ATekdaqc tekdaqc, List<AnalogInputData> data) {
-        try {
-            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-                listener.onAnalogInputDataReceived(tekdaqc, data);
-            }
-        }catch (NullPointerException e){
-            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
-                    " This is likely due to disconnecting while samples were being parsed.");
-        }
-    }
 
 
     @Override
     public void onDigitalInputDataReceived(ATekdaqc tekdaqc, DigitalInputData data) {
-        try {
-            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-                listener.onDigitalInputDataReceived(tekdaqc, data);
-            }
-        }catch (NullPointerException e){
-            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
-                    " This is likely due to disconnecting while samples were being parsed.");
-        }
+        MessageBroadcaster.getInstance().broadcastDigitalInputDataPoint(tekdaqc,data);
     }
 
 
     @Override
-    public void onDigitalOutputDataReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        try {
-            for (ICommunicationListener listener : mListenerMap.get(tekdaqc.getSerialNumber())) {
-                listener.onDigitalOutputDataReceived(tekdaqc, message);
-            }
-        }catch (NullPointerException e){
-            Log.e("Tekdaqc Null Data","The TekdaqcCommunicationManager received null data from the remote service." +
-                    " This is likely due to disconnecting while samples were being parsed.");
-        }
-    }
-
-
-    @Override
-    public void onTaskSuccess(ATekdaqc tekdaqc) {
-        mTaskMap.get(tekdaqc.getSerialNumber()).poll().onTaskSuccess(tekdaqc);
-    }
-
-
-    @Override
-    public void onTaskFailed(ATekdaqc tekdaqc) {
-        mTaskMap.get(tekdaqc.getSerialNumber()).poll().onTaskFailed(tekdaqc);
+    public void onDigitalOutputDataReceived(ATekdaqc tekdaqc, boolean[] data) {
+        MessageBroadcaster.getInstance().broadcastMessage(tekdaqc,new ASCIIDigitalOutputDataMessage(data));
     }
 
 
@@ -357,67 +296,61 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
                 case TekCast.TEKDAQC_ANALOG_INPUT_MESSAGE:
                     onAnalogInputDataReceived(
-                            (ATekdaqc)msg.getData().getSerializable(TekCast.DATA_MESSSAGE_TEKDAQC),
+                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
                             (AnalogInputData)msg.getData().getSerializable(TekCast.DATA_MESSSAGE));
                     break;
 
                 case TekCast.TEKDAQC_COMMAND_MESSAGE:
                     onCommandDataMessageReceived(
-                            (ATekdaqc)msg.getData().getSerializable(TekCast.DATA_MESSSAGE_TEKDAQC),
+                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
                             (ABoardMessage)msg.getData().getSerializable(TekCast.DATA_MESSSAGE));
                     break;
 
                 case TekCast.TEKDAQC_DEBUG_MESSAGE:
                     onDebugMessageReceived(
-                            (ATekdaqc)msg.getData().getSerializable(TekCast.DATA_MESSSAGE_TEKDAQC),
+                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
                             (ABoardMessage)msg.getData().getSerializable(TekCast.DATA_MESSSAGE));
                     break;
 
                 case TekCast.TEKDAQC_DIGITAL_INPUT_MESSAGE:
                     onDigitalInputDataReceived(
-                            (ATekdaqc)msg.getData().getSerializable(TekCast.DATA_MESSSAGE_TEKDAQC),
+                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
                             (DigitalInputData)msg.getData().getSerializable(TekCast.DATA_MESSSAGE));
                     break;
 
                 case TekCast.TEKDAQC_DIGITAL_OUTPUT_MESSAGE:
                     onDigitalOutputDataReceived(
-                            (ATekdaqc)msg.getData().getSerializable(TekCast.DATA_MESSSAGE_TEKDAQC),
-                            (ABoardMessage)msg.getData().getSerializable(TekCast.DATA_MESSSAGE));
+                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
+                            msg.getData().getBooleanArray(TekCast.DATA_MESSSAGE));
                     break;
 
                 case TekCast.TEKDAQC_ERROR_MESSAGE:
                     onErrorMessageReceived(
-                            (ATekdaqc)msg.getData().getSerializable(TekCast.DATA_MESSSAGE_TEKDAQC),
+                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
                             (ABoardMessage)msg.getData().getSerializable(TekCast.DATA_MESSSAGE));
                     break;
 
                 case TekCast.TEKDAQC_STATUS_MESSAGE:
                     onStatusMessageReceived(
-                            (ATekdaqc)msg.getData().getSerializable(TekCast.DATA_MESSSAGE_TEKDAQC),
+                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
                             (ABoardMessage)msg.getData().getSerializable(TekCast.DATA_MESSSAGE));
                     break;
 
                 case TekCast.TEKDAQC_TASK_COMPLETE:
-                    onTaskSuccess((ATekdaqc)msg.getData().getSerializable(TekCast.DATA_MESSSAGE_TEKDAQC));
+                    mTaskMap.get(
+                            msg.getData().getDouble(TekCast.DATA_MESSSAGE_UID)).success(
+                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)));
+                   /* onTaskSuccess(mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)));*/
                     break;
 
                 case TekCast.TEKDAQC_TASK_FAILURE:
-                    onTaskFailed((ATekdaqc)msg.getData().getSerializable(TekCast.DATA_MESSSAGE_TEKDAQC));
+                    mTaskMap.get(
+                            msg.getData().getDouble(TekCast.DATA_MESSSAGE_UID)).failure(
+                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)));
+                    /*onTaskFailed(mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)));*/
                     break;
 
-                case TekCast.TEKDAQC_CONNECTED:
-                    ATekdaqc tekdaqcConnected = (ATekdaqc) msg.getData().getSerializable(TekCast.SERVICE_TEKDAQC_CONNECT);
-                    for(ICommunicationListener listener:mListenerMap.get(tekdaqcConnected.getSerialNumber())){
-                        listener.onTekdaqcConnected(tekdaqcConnected);
-                    }
-                    break;
 
-                case TekCast.TEKDAQC_DISCONNECTED:
-                    ATekdaqc tekdaqcDisconnected = (ATekdaqc) msg.getData().getSerializable(TekCast.SERVICE_TEKDAQC_DISCONNECT);
-                    for(ICommunicationListener listener:mListenerMap.get(tekdaqcDisconnected.getSerialNumber())){
-                        listener.onTekdaqcDisconnected(tekdaqcDisconnected);
-                    }
-                    break;
             }
         }
     }

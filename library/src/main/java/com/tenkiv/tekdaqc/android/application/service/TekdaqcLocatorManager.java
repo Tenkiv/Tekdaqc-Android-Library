@@ -4,8 +4,11 @@ import android.app.ActivityManager;
 import android.content.*;
 import android.os.*;
 import com.tenkiv.tekdaqc.ATekdaqc;
+import com.tenkiv.tekdaqc.android.application.client.Tekdaqc;
+import com.tenkiv.tekdaqc.android.application.util.IServiceListener;
 import com.tenkiv.tekdaqc.android.application.util.TekCast;
 import com.tenkiv.tekdaqc.locator.Locator;
+import com.tenkiv.tekdaqc.locator.LocatorResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +16,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class TekdaqcLocatorManager implements ServiceConnection{
+public class TekdaqcLocatorManager implements ServiceConnection, IServiceListener{
 
     private static boolean hasReceivedData = false;
 
@@ -23,6 +26,9 @@ public class TekdaqcLocatorManager implements ServiceConnection{
 
     private static List<Locator.OnTekdaqcDiscovered> mUserListeners;
 
+    private static TekdaqcCommunicationManager mTekdaqcComManager;
+
+    private static boolean mIsComManagerCreated = false;
 
     private Context mContext;
 
@@ -47,6 +53,8 @@ public class TekdaqcLocatorManager implements ServiceConnection{
         mContext = context;
 
         startLocatorService();
+
+        TekdaqcCommunicationManager.startCommunicationService(context,this);
 
     }
 
@@ -106,20 +114,26 @@ public class TekdaqcLocatorManager implements ServiceConnection{
         mLocatorWatchdog.cancel();
     }
 
+    @Override
+    public void onManagerServiceCreated(TekdaqcCommunicationManager communicationManager) {
+        mTekdaqcComManager = communicationManager;
+        mIsComManagerCreated = true;
+    }
+
     public static class LocatorReceiver extends BroadcastReceiver{
 
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            Bundle bundle = intent.getExtras();
-
-            ATekdaqc tekdaqc = (ATekdaqc)intent.getExtras().get(TekCast.BROADCAST_TEKDAQC);
-
-            boolean locatedByForeignApp = !(ATekdaqc.getActiveTekdaqcMap().containsKey(tekdaqc.getSerialNumber()));
-
             hasReceivedData = true;
 
-            if(mUserListeners!=null) {
+            if(mUserListeners!=null && mIsComManagerCreated) {
+
+                Bundle bundle = intent.getExtras();
+
+                ATekdaqc tekdaqc = new Tekdaqc((LocatorResponse)intent.getExtras().get(TekCast.BROADCAST_TEKDAQC_RESPONSE), mTekdaqcComManager);
+
+                boolean locatedByForeignApp = !(ATekdaqc.getActiveTekdaqcMap().containsKey(tekdaqc.getSerialNumber()));
 
                 cullListeners();
 

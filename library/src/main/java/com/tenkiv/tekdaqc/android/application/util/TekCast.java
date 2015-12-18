@@ -36,6 +36,7 @@ public interface TekCast {
     public static final String SERVICE_TEKDAQC_DISCONNECT = "SERVICE_TEKDAQC_DISCONNECT";
     public static final String DATA_MESSSAGE_TEKDAQC = "DATA_MESSSAGE_TEKDAQC";
     public static final String DATA_MESSSAGE = "DATA_MESSSAGE";
+    public static final String DATA_MESSSAGE_UID = "DATA_MESSSAGE_UID";
 
     // Inetgers for service Message handling.
     public static final int SERVICE_MSG_REGISTER = 0;
@@ -55,15 +56,15 @@ public interface TekCast {
     public static final int TEKDAQC_COMMAND_MESSAGE = 6;
     public static final int TEKDAQC_TASK_COMPLETE = 7;
     public static final int TEKDAQC_TASK_FAILURE = 8;
-    public static final int TEKDAQC_CONNECTED = 9;
-    public static final int TEKDAQC_DISCONNECTED = 10;
+    /*public static final int TEKDAQC_CONNECTED = 9;
+    public static final int TEKDAQC_DISCONNECTED = 10;*/
 
     // Locator Service constants
     public static final int LOCATOR_RESPONSE = 0;
     public static final int LOCATOR_FIRST = 1;
     public static final int LOCATOR_LOST = 2;
     public static final String BROADCAST_URI = "com.tenkiv.tekdaqc.LOCATOR";
-    public static final String BROADCAST_TEKDAQC = "LOCATED_TEKDAQC";
+    public static final String BROADCAST_TEKDAQC_RESPONSE = "LOCATED_TEKDAQC";
     public static final String BROADCAST_CALL_TYPE = "LOCATED_CALL_TYPE";
     public static final long DEFAULT_DELAY = 0;
     public static final long DEFAULT_PERIOD = 3000;

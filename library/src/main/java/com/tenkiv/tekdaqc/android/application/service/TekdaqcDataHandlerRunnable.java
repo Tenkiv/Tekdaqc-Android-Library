@@ -1,15 +1,11 @@
 package com.tenkiv.tekdaqc.android.application.service;
 
 import com.tenkiv.tekdaqc.ATekdaqc;
-import com.tenkiv.tekdaqc.android.application.service.TekdaqcCommunicationManager;
 import com.tenkiv.tekdaqc.android.application.util.ICommunicationListener;
 import com.tenkiv.tekdaqc.android.application.util.TekdaqcHandlerCall;
 import com.tenkiv.tekdaqc.communication.data_points.AnalogInputData;
 import com.tenkiv.tekdaqc.communication.data_points.DigitalInputData;
-import com.tenkiv.tekdaqc.communication.data_points.DigitalOutputData;
 import com.tenkiv.tekdaqc.communication.message.ABoardMessage;
-
-import java.util.List;
 
 
 public class TekdaqcDataHandlerRunnable implements Runnable{
@@ -36,12 +32,8 @@ public class TekdaqcDataHandlerRunnable implements Runnable{
 
         switch(mCallType){
 
-            case ANALOG_S:
+            case ANALOG:
                 mListener.onAnalogInputDataReceived(mTekdaqc,(AnalogInputData)mData);
-                break;
-
-            case ANALOG_L:
-                mListener.onAnalogInputDataReceived(mTekdaqc,(List<AnalogInputData>)mData);
                 break;
 
             case COMMAND:
@@ -65,7 +57,7 @@ public class TekdaqcDataHandlerRunnable implements Runnable{
                 break;
 
             case DIGITAL_O:
-                mListener.onDigitalOutputDataReceived(mTekdaqc,(ABoardMessage)mData);
+                mListener.onDigitalOutputDataReceived(mTekdaqc,(boolean[])mData);
                 break;
 
             case CONNECTED:
