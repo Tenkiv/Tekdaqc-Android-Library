@@ -6,52 +6,83 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.*;
-import android.util.Log;
 import com.tenkiv.tekdaqc.ATekdaqc;
-import com.tenkiv.tekdaqc.android.application.client.TaskQueuePlaceholder;
-import com.tenkiv.tekdaqc.android.application.util.ICommunicationListener;
+import com.tenkiv.tekdaqc.android.application.client.Tekdaqc;
 import com.tenkiv.tekdaqc.android.application.util.IServiceListener;
 import com.tenkiv.tekdaqc.android.application.util.TekCast;
 import com.tenkiv.tekdaqc.communication.ascii.message.parsing.ASCIIDigitalOutputDataMessage;
 import com.tenkiv.tekdaqc.communication.command.queue.IQueueObject;
 import com.tenkiv.tekdaqc.communication.command.queue.QueueCallback;
 import com.tenkiv.tekdaqc.communication.command.queue.Task;
-import com.tenkiv.tekdaqc.communication.command.queue.values.ABaseQueueVal;
 import com.tenkiv.tekdaqc.communication.data_points.AnalogInputData;
 import com.tenkiv.tekdaqc.communication.data_points.DigitalInputData;
 import com.tenkiv.tekdaqc.communication.message.ABoardMessage;
 import com.tenkiv.tekdaqc.communication.message.IMessageListener;
 import com.tenkiv.tekdaqc.communication.message.MessageBroadcaster;
-import com.tenkiv.tekdaqc.communication.tasks.ITaskComplete;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-
+/**
+ * Class which manages the connection between commands and data sent through {@link Tekdaqc} objects and {@link CommunicationService}.
+ *
+ * @author Ellis Berry (ejberry@tenkiv.com)
+ * @since v2.0.0.0
+ */
 public class TekdaqcCommunicationManager implements ServiceConnection, IMessageListener{
 
+    /**
+     * The Context.
+     */
     private Context mContext;
 
+    /**
+     * Callback for notification that service has been connected to.
+     */
     private IServiceListener mServiceListener;
 
+    /**
+     * This.
+     */
     private static TekdaqcCommunicationManager mComManager;
 
+    /**
+     * This process's reference to the {@link CommunicationService}'s {@link Messenger}.
+     */
     private Messenger mService;
 
+    /**
+     * The {@link Messenger} for this client.
+     */
     private Messenger mMessenger = new Messenger(new ClientHandler());
 
+    /**
+     * A {@link Map} of all {@link ATekdaqc}s and their serial numbers.
+     */
     private ConcurrentHashMap<String,ATekdaqc> mTekdaqcMap;
 
-    private ConcurrentHashMap<String,ArrayList<IMessageListener>> mListenerMap;
 
+    /**
+     * A {@link Map} of all {@link QueueCallback}s and their unique identifiers so that Task callbacks can be conducted across processes.
+     */
     private ConcurrentHashMap<Double,QueueCallback> mTaskMap;
 
+    /**
+     * Variable used to assign UIDs.
+     */
     private static volatile double mUIDAssign = 0;
 
 
+    /**
+     * Singleton constructor to ensure that there exists only one per process.
+     *
+     * @param context The context.
+     * @param listener The listener callback for completion.
+     */
     private TekdaqcCommunicationManager(Context context,IServiceListener listener){
 
         mContext = context;
@@ -62,8 +93,6 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
         mTekdaqcMap = new ConcurrentHashMap<>();
 
-        mListenerMap = new ConcurrentHashMap<>();
-
         mTaskMap = new ConcurrentHashMap<>();
 
         Intent comService = new Intent(context, CommunicationService.class);
@@ -72,6 +101,12 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
     }
 
 
+    /**
+     * Method used for creating this singleton class.
+     *
+     * @param context The context.
+     * @param listener The listener callback for completion.
+     */
     public static void startCommunicationService(Context context, IServiceListener listener){
         if(mComManager == null) {
             mComManager = new TekdaqcCommunicationManager(context, listener);
@@ -81,17 +116,31 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
         }
     }
 
+    /**
+     * Gets the {@link TekdaqcCommunicationManager}.
+     *
+     * @return The {@link TekdaqcCommunicationManager}, returns null if not created yet.
+     */
     public static TekdaqcCommunicationManager getTekdaqcCommunicationsManager(){
         return mComManager;
     }
 
 
-    public void stopCommunicationManager() throws IOException {
+    /**
+     * Unbinds the manager from the service.
+     */
+    public void stopCommunicationManager() {
         mContext.unbindService(this);
 
     }
 
 
+    /**
+     * Static method to determine if the {@link CommunicationService} is running.
+     *
+     * @param context The context.
+     * @return The current status of the {@link CommunicationService}.
+     */
     public static boolean isComServiceRunning(Context context) {
 
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
@@ -105,7 +154,13 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
     }
 
 
-    public void executeCommand(String serial, IQueueObject command) throws InterruptedException {
+    /**
+     * Client side call to attempt to execute a command on a {@link ATekdaqc} on the {@link CommunicationService}.
+     *
+     * @param serial The {@link String} of the serial number.
+     * @param command The {@link IQueueObject}.
+     */
+    public void executeCommand(String serial, IQueueObject command) {
 
         if(command == null){
             throw new NullPointerException();
@@ -126,6 +181,12 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
     }
 
 
+    /**
+     * Client side call to attempt to execute a {@link Task} on a {@link ATekdaqc} on the {@link CommunicationService}.
+     *
+     * @param serial The {@link String} of the serial number.
+     * @param task The {@link Task}.
+     */
     public void executeTask(String serial, Task task){
 
         if(task == null){
@@ -157,6 +218,11 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
     }
 
 
+    /**
+     * Call to have the {@link CommunicationService} attempt to connect to the specified {@link ATekdaqc}.
+     *
+     * @param tekdaqc The {@link ATekdaqc} to connect to.
+     */
     public void connectToTekdaqc(ATekdaqc tekdaqc){
 
         if(tekdaqc == null){
@@ -178,8 +244,12 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
         }
     }
 
-
-    public void disconnectFromTekdaqc(ATekdaqc tekdaqc, ICommunicationListener listener){
+    /**
+     * Method to attempt to safely disconnect from the selected {@link ATekdaqc}.
+     *
+     * @param tekdaqc The {@link ATekdaqc} to disconnect from.
+     */
+    public void disconnectFromTekdaqc(ATekdaqc tekdaqc){
 
         if(tekdaqc == null){
             throw new NullPointerException();
@@ -201,26 +271,6 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
         }
     }
 
-
-    public void setCommunicationListener(String serial, IMessageListener listener){
-
-        if(mListenerMap.containsKey(serial)){
-            if(!mListenerMap.get(serial).contains(listener)) {
-                mListenerMap.get(serial).add(listener);
-            }
-
-        }else{
-            ArrayList<IMessageListener> listenerArrayList = new ArrayList<>();
-            listenerArrayList.add(listener);
-            mListenerMap.put(serial,listenerArrayList);
-        }
-    }
-
-    public void removeCommunicationListener(String serial, ICommunicationListener listener){
-        if(mListenerMap.get(serial).contains(listener)) {
-            mListenerMap.get(serial).remove(listener);
-        }
-    }
 
 
     @Override
@@ -340,14 +390,12 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
                     mTaskMap.get(
                             msg.getData().getDouble(TekCast.DATA_MESSSAGE_UID)).success(
                             mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)));
-                   /* onTaskSuccess(mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)));*/
                     break;
 
                 case TekCast.TEKDAQC_TASK_FAILURE:
                     mTaskMap.get(
                             msg.getData().getDouble(TekCast.DATA_MESSSAGE_UID)).failure(
                             mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)));
-                    /*onTaskFailed(mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)));*/
                     break;
 
 

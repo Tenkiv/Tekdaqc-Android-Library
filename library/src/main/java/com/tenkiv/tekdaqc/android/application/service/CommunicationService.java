@@ -19,20 +19,39 @@ import com.tenkiv.tekdaqc.revd.Tekdaqc_RevD;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-
+/**
+ * Class which handles all telnet connections and network operations for communicating with the tekdaqc. This allows for multiple different apps
+ * to all share telnet connections and shrink resource use.
+ *
+ * @author Ellis Berry (ejberry@tenkiv.com)
+ * @since v2.0.0.0
+ */
 public class CommunicationService extends Service implements IMessageListener{
 
+    /**
+     * The {@link Handler} for all {@link Messenger callbacks}.
+     */
     private ServiceHandler mServiceHandler = new ServiceHandler();
 
+    /**
+     * The {@link Messenger} for this {@link Service} which all apps will communicate through.
+     */
     private Messenger mComMessenger = new Messenger(mServiceHandler);
 
     private ConcurrentHashMap<String,Messenger> mMessengerMap = new ConcurrentHashMap<>();
 
+    /**
+     * The {@link Map} of all connected {@link ATekdaqc}s.
+     */
     private ConcurrentHashMap<String,ATekdaqc> mTekdaqcMap = new ConcurrentHashMap<>();
 
+    /**
+     * The {@link List} of all connected {@link Messenger}s.
+     */
     private List<Messenger> mMessengerList = new ArrayList<Messenger>();
 
     @Override
@@ -46,14 +65,29 @@ public class CommunicationService extends Service implements IMessageListener{
 
     }
 
+    /**
+     * Empty constructor required for remote {@link Service}.
+     */
     public CommunicationService() {
         super();
     }
 
+    /**
+     * The {@link Service} side method to queue a {@link IQueueObject} for execution on a {@link ATekdaqc}.
+     *
+     * @param serial The {@link String} of the {@link ATekdaqc}'s serial number.
+     * @param command The {@link IQueueObject} to be queued.
+     */
     public void executeCommand(String serial,IQueueObject command){
         mTekdaqcMap.get(serial).queueCommand(command);
     }
 
+    /**
+     * The {@link Service} side method to queue a {@link List} of {@link IQueueObject} for execution and provide callbacks to client side {@link ITaskComplete} interfaces.
+     *
+     * @param serial The {@link String} of the {@link ATekdaqc}'s serial number.
+     * @param task The {@link List} of {@link IQueueObject}s to be queued.
+     */
     public void executeTask(final String serial, List<IQueueObject> task){
 
         for(final IQueueObject object: task){
@@ -94,6 +128,12 @@ public class CommunicationService extends Service implements IMessageListener{
         }
     }
 
+    /**
+     * Method to generate the correct {@link ATekdaqc} based upon the {@link LocatorResponse}.
+     *
+     * @param response The {@link LocatorResponse} of the desired Tekdaqc.
+     * @return A {@link ATekdaqc} of the appropriate type.
+     */
     public ATekdaqc generateTekdaqc(LocatorResponse response){
         ATekdaqc tekdaqc = null;
         switch (response.getType()){
@@ -109,19 +149,36 @@ public class CommunicationService extends Service implements IMessageListener{
         return tekdaqc;
     }
 
+    /**
+     * Method to halt communication with a {@link ATekdaqc}.
+     *
+     * @param serial The {@link String} of the Tekdaqc's serial number.
+     * @throws IOException
+     */
     public void haltComService(String serial) throws IOException {
         mTekdaqcMap.get(serial).disconnect();
     }
 
+    /**
+     * Method to connect to a tekdaqc given a {@link LocatorResponse}. This also serves to add a reference to the client side {@link Messenger} if it doesnt exist already.
+     * @param response The {@link LocatorResponse} of the tekdaqc to be connected to.
+     * @param messenger The {@link Messenger} associated with the connection.
+     */
     public void connectToTekdaqc(LocatorResponse response, Messenger messenger){
         ATekdaqc tekdaqc = generateTekdaqc(response);
         tekdaqc.registerListener(this);
         mTekdaqcMap.put(tekdaqc.getSerialNumber(),tekdaqc);
-        new ServiceConnectionThread(/*messenger,*/tekdaqc/*,this*/).start();
+        new ServiceConnectionThread(tekdaqc).start();
         mMessengerMap.put(tekdaqc.getSerialNumber(),messenger);
 
     }
 
+    /**
+     * Method to disconnect from a {@link ATekdaqc}.
+     *
+     * @param tekdaqc The {@link ATekdaqc} to disconnect from.
+     * @param messenger
+     */
     public void disconnectFromTekdaqc(ATekdaqc tekdaqc, Messenger messenger){
         tekdaqc.unregisterListener(this);
         mTekdaqcMap.get(tekdaqc.getSerialNumber()).halt();
@@ -130,6 +187,11 @@ public class CommunicationService extends Service implements IMessageListener{
 
     }
 
+    /**
+     * Method to iterate through all registered listeners and send the {@link Message}.
+     *
+     * @param message The {@link Message} to be sent.
+     */
     public void sendMessageToRegisteredListeners(Message message){
         for (Messenger messenger : mMessengerList) {
             if (messenger != null) {
@@ -155,6 +217,9 @@ public class CommunicationService extends Service implements IMessageListener{
         return mComMessenger.getBinder();
     }
 
+    /**
+     * Inner class which acts as the {@link Handler} for the {@link CommunicationService}.
+     */
     private class ServiceHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {

@@ -21,11 +21,9 @@ import android.os.Messenger;
 
 
 /**
- * Container of {@link String}s for {@link Messenger} and {@link Bundle} actions and extras.
- *
+ * Util class of {@link String}s for {@link Messenger} and {@link Bundle} actions and extras.
  */
 public interface TekCast {
-
 
     // Keys for Bundle Packets.
     public static final String SERVICE_TEKDAQC_REGISTER = "SERVICE_TEKDAQC_REGISTER";
@@ -56,8 +54,6 @@ public interface TekCast {
     public static final int TEKDAQC_COMMAND_MESSAGE = 6;
     public static final int TEKDAQC_TASK_COMPLETE = 7;
     public static final int TEKDAQC_TASK_FAILURE = 8;
-    /*public static final int TEKDAQC_CONNECTED = 9;
-    public static final int TEKDAQC_DISCONNECTED = 10;*/
 
     // Locator Service constants
     public static final int LOCATOR_RESPONSE = 0;
