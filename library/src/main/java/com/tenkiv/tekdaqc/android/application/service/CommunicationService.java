@@ -42,7 +42,7 @@ public class CommunicationService extends Service implements IMessageListener{
      */
     private Messenger mComMessenger = new Messenger(mServiceHandler);
 
-    private ConcurrentHashMap<String,Messenger> mMessengerMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String,List<Messenger>> mMessengerMap = new ConcurrentHashMap<>();
 
     /**
      * The {@link Map} of all connected {@link ATekdaqc}s.
@@ -104,7 +104,7 @@ public class CommunicationService extends Service implements IMessageListener{
                             dataMessage.what = TekCast.TEKDAQC_TASK_COMPLETE;
                             dataMessage.setData(dataBundle);
 
-                            sendMessageToRegisteredListeners(dataMessage);
+                            sendMessageToRegisteredListeners(dataMessage, aTekdaqc.getSerialNumber());
                         }
                     }
 
@@ -119,7 +119,7 @@ public class CommunicationService extends Service implements IMessageListener{
                             dataMessage.what = TekCast.TEKDAQC_TASK_FAILURE;
                             dataMessage.setData(dataBundle);
 
-                            sendMessageToRegisteredListeners(dataMessage);
+                            sendMessageToRegisteredListeners(dataMessage, aTekdaqc.getSerialNumber());
                         }
                     }
                 });
@@ -160,17 +160,36 @@ public class CommunicationService extends Service implements IMessageListener{
     }
 
     /**
+     * Method for adding to the {@link List} of {@link Messenger}s which need data from Tekdaqcs they try to connect to.
+     *
+     * @param serial The {@link String} of the serial number.
+     * @param messenger The {@link Messenger} used for callbacks.
+     */
+    public void addMessengerToCallbackMap(String serial, Messenger messenger){
+        if(mMessengerMap.get(serial) == null){
+            mMessengerMap.put(serial, new ArrayList<Messenger>());
+        }
+
+        if(!mMessengerMap.get(serial).contains(messenger)){
+            mMessengerMap.get(serial).add(messenger);
+        }
+    }
+
+    /**
      * Method to connect to a tekdaqc given a {@link LocatorResponse}. This also serves to add a reference to the client side {@link Messenger} if it doesnt exist already.
      * @param response The {@link LocatorResponse} of the tekdaqc to be connected to.
      * @param messenger The {@link Messenger} associated with the connection.
      */
     public void connectToTekdaqc(LocatorResponse response, Messenger messenger){
-        ATekdaqc tekdaqc = generateTekdaqc(response);
-        tekdaqc.registerListener(this);
-        mTekdaqcMap.put(tekdaqc.getSerialNumber(),tekdaqc);
-        new ServiceConnectionThread(tekdaqc).start();
-        mMessengerMap.put(tekdaqc.getSerialNumber(),messenger);
 
+        addMessengerToCallbackMap(response.getSerial(),messenger);
+
+        if(!mTekdaqcMap.containsKey(response.getSerial())) {
+            ATekdaqc tekdaqc = generateTekdaqc(response);
+            tekdaqc.registerListener(this);
+            mTekdaqcMap.put(tekdaqc.getSerialNumber(), tekdaqc);
+            new ServiceConnectionThread(tekdaqc).start();
+        }
     }
 
     /**
@@ -192,8 +211,11 @@ public class CommunicationService extends Service implements IMessageListener{
      *
      * @param message The {@link Message} to be sent.
      */
-    public void sendMessageToRegisteredListeners(Message message){
-        for (Messenger messenger : mMessengerList) {
+    public void sendMessageToRegisteredListeners(Message message, String serial){
+
+        List<Messenger> responseList = mMessengerMap.get(serial);
+
+        for (Messenger messenger : responseList) {
             if (messenger != null) {
                 try {
                     messenger.send(message);
@@ -201,7 +223,7 @@ public class CommunicationService extends Service implements IMessageListener{
                     e.printStackTrace();
                 }
             }else{
-                mMessengerList.remove(messenger);
+                mMessengerMap.get(serial).remove(messenger);
             }
         }
     }
@@ -270,7 +292,7 @@ public class CommunicationService extends Service implements IMessageListener{
             dataMessage.what = TekCast.TEKDAQC_ERROR_MESSAGE;
             dataMessage.setData(dataBundle);
 
-            sendMessageToRegisteredListeners(dataMessage);
+            sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
         }
     }
 
@@ -285,7 +307,7 @@ public class CommunicationService extends Service implements IMessageListener{
             dataMessage.what = TekCast.TEKDAQC_STATUS_MESSAGE;
             dataMessage.setData(dataBundle);
 
-            sendMessageToRegisteredListeners(dataMessage);
+            sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
         }
     }
 
@@ -300,7 +322,7 @@ public class CommunicationService extends Service implements IMessageListener{
             dataMessage.what = TekCast.TEKDAQC_DEBUG_MESSAGE;
             dataMessage.setData(dataBundle);
 
-            sendMessageToRegisteredListeners(dataMessage);
+            sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
         }
     }
 
@@ -315,7 +337,7 @@ public class CommunicationService extends Service implements IMessageListener{
             dataMessage.what = TekCast.TEKDAQC_COMMAND_MESSAGE;
             dataMessage.setData(dataBundle);
 
-            sendMessageToRegisteredListeners(dataMessage);
+            sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
         }
     }
 
@@ -330,7 +352,7 @@ public class CommunicationService extends Service implements IMessageListener{
             dataMessage.what = TekCast.TEKDAQC_ANALOG_INPUT_MESSAGE;
             dataMessage.setData(dataBundle);
 
-            sendMessageToRegisteredListeners(dataMessage);
+            sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
         }
     }
 
@@ -346,7 +368,7 @@ public class CommunicationService extends Service implements IMessageListener{
             dataMessage.what = TekCast.TEKDAQC_DIGITAL_INPUT_MESSAGE;
             dataMessage.setData(dataBundle);
 
-            sendMessageToRegisteredListeners(dataMessage);
+            sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
         }
     }
 
@@ -361,7 +383,7 @@ public class CommunicationService extends Service implements IMessageListener{
             dataMessage.what = TekCast.TEKDAQC_DIGITAL_OUTPUT_MESSAGE;
             dataMessage.setData(dataBundle);
 
-            sendMessageToRegisteredListeners(dataMessage);
+            sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
         }
     }
 

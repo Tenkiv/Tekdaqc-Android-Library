@@ -40,4 +40,8 @@ public class Tekdaqc extends Tekdaqc_RevD {
         mManager.connectToTekdaqc(this);
     }
 
+    @Override
+    public void disconnect() throws IOException {
+        mManager.disconnectFromTekdaqc(this);
+    }
 }
