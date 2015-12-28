@@ -11,7 +11,7 @@ import com.tenkiv.tekdaqc.locator.Locator;
 /**
  * Class which handles the UDP broadcasts for Tekdaqc location. It then broacasts the discovered Tekdaqcs so they can be received by the {@link TekdaqcLocatorManager}.
  *
- * @author Ellis Berry (ejberry@tenkiv.com)
+ * @author Tenkiv (software@tenkiv.com)
  * @since v2.0.0.0
  */
 public  class LocatorService extends Service implements Locator.OnTekdaqcDiscovered{

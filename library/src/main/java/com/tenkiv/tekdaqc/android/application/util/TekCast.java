@@ -22,6 +22,9 @@ import android.os.Messenger;
 
 /**
  * Util class of {@link String}s for {@link Messenger} and {@link Bundle} actions and extras.
+ *
+ * @author Tenkiv (software@tenkiv.com)
+ * @since v2.0.0.0
  */
 public interface TekCast {
 

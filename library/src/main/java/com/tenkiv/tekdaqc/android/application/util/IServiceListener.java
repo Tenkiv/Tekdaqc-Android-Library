@@ -6,7 +6,7 @@ import com.tenkiv.tekdaqc.android.application.service.TekdaqcCommunicationManage
 /**
  * Simple interface to provide callbacks upon {@link CommunicationService} creation.
  *
- * @author Ellis Berry (ejberry@tenkiv.com)
+ * @author Tenkiv (software@tenkiv.com)
  * @since v2.0.0.0
  */
 public interface IServiceListener {

@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Class which manages the connection between commands and data sent through {@link Tekdaqc} objects and {@link CommunicationService}.
  *
- * @author Ellis Berry (ejberry@tenkiv.com)
+ * @author Tenkiv (software@tenkiv.com)
  * @since v2.0.0.0
  */
 public class TekdaqcCommunicationManager implements ServiceConnection, IMessageListener{
@@ -255,9 +255,6 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
             throw new NullPointerException();
         }
 
-        final MessageBroadcaster broadcaster = MessageBroadcaster.getInstance();
-        broadcaster.unRegisterListener(tekdaqc, this);
-
         Bundle dataBundle = new Bundle();
         dataBundle.putSerializable(TekCast.SERVICE_TEKDAQC_DISCONNECT,tekdaqc);
         Message msg = Message.obtain(null,TekCast.SERVICE_MSG_DISCONNECT);
@@ -275,17 +272,8 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
-
         mService = new Messenger(service);
 
-        Message msg = Message.obtain(null,TekCast.SERVICE_MSG_REGISTER);
-        msg.replyTo = mMessenger;
-
-        try {
-            mService.send(msg);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
         mServiceListener.onManagerServiceCreated(this);
     }
 

@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Class which handles all telnet connections and network operations for communicating with the tekdaqc. This allows for multiple different apps
  * to all share telnet connections and shrink resource use.
  *
- * @author Ellis Berry (ejberry@tenkiv.com)
+ * @author Tenkiv (software@tenkiv.com)
  * @since v2.0.0.0
  */
 public class CommunicationService extends Service implements IMessageListener{
@@ -42,17 +42,15 @@ public class CommunicationService extends Service implements IMessageListener{
      */
     private Messenger mComMessenger = new Messenger(mServiceHandler);
 
+    /**
+     * A {@link Map} used to store serial numbers and the {@link List} of {@link Messenger}s associated with them.
+     */
     private ConcurrentHashMap<String,List<Messenger>> mMessengerMap = new ConcurrentHashMap<>();
 
     /**
      * The {@link Map} of all connected {@link ATekdaqc}s.
      */
     private ConcurrentHashMap<String,ATekdaqc> mTekdaqcMap = new ConcurrentHashMap<>();
-
-    /**
-     * The {@link List} of all connected {@link Messenger}s.
-     */
-    private List<Messenger> mMessengerList = new ArrayList<Messenger>();
 
     @Override
     public void onDestroy() {
@@ -88,14 +86,14 @@ public class CommunicationService extends Service implements IMessageListener{
      * @param serial The {@link String} of the {@link ATekdaqc}'s serial number.
      * @param task The {@link List} of {@link IQueueObject}s to be queued.
      */
-    public void executeTask(final String serial, List<IQueueObject> task){
+    public void executeTask(final String serial, List<IQueueObject> task, final Messenger callbackBinder){
 
         for(final IQueueObject object: task){
             if(object instanceof QueueCallback){
                 ((QueueCallback) object).addCallback(new ITaskComplete() {
                     @Override
                     public void onTaskSuccess(ATekdaqc aTekdaqc) {
-                        if (mMessengerList.size() > 0) {
+                        if (mMessengerMap.get(serial).size() > 0) {
                             Bundle dataBundle = new Bundle();
                             dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, serial);
                             dataBundle.putDouble(TekCast.DATA_MESSSAGE_UID, ((QueueCallback) object).getUID());
@@ -104,13 +102,17 @@ public class CommunicationService extends Service implements IMessageListener{
                             dataMessage.what = TekCast.TEKDAQC_TASK_COMPLETE;
                             dataMessage.setData(dataBundle);
 
-                            sendMessageToRegisteredListeners(dataMessage, aTekdaqc.getSerialNumber());
+                            try {
+                                callbackBinder.send(dataMessage);
+                            } catch (RemoteException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
 
                     @Override
                     public void onTaskFailed(ATekdaqc aTekdaqc) {
-                        if (mMessengerList.size() > 0) {
+                        if (mMessengerMap.get(serial).size() > 0) {
                             Bundle dataBundle = new Bundle();
                             dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, serial);
                             dataBundle.putDouble(TekCast.DATA_MESSSAGE_UID, ((QueueCallback) object).getUID());
@@ -119,7 +121,11 @@ public class CommunicationService extends Service implements IMessageListener{
                             dataMessage.what = TekCast.TEKDAQC_TASK_FAILURE;
                             dataMessage.setData(dataBundle);
 
-                            sendMessageToRegisteredListeners(dataMessage, aTekdaqc.getSerialNumber());
+                            try {
+                                callbackBinder.send(dataMessage);
+                            } catch (RemoteException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 });
@@ -129,7 +135,8 @@ public class CommunicationService extends Service implements IMessageListener{
     }
 
     /**
-     * Method to generate the correct {@link ATekdaqc} based upon the {@link LocatorResponse}.
+     * Method to generate the correct {@link ATekdaqc} based upon the {@link LocatorResponse}. At the moment there is only one
+     * Tekdaqc revision, however this will not always be the case.
      *
      * @param response The {@link LocatorResponse} of the desired Tekdaqc.
      * @return A {@link ATekdaqc} of the appropriate type.
@@ -200,6 +207,9 @@ public class CommunicationService extends Service implements IMessageListener{
      */
     public void disconnectFromTekdaqc(ATekdaqc tekdaqc, Messenger messenger){
         tekdaqc.unregisterListener(this);
+
+        mMessengerMap.get(tekdaqc.getSerialNumber()).remove(messenger);
+
         mTekdaqcMap.get(tekdaqc.getSerialNumber()).halt();
         mTekdaqcMap.get(tekdaqc.getSerialNumber()).disconnectCleanly();
         mTekdaqcMap.remove(tekdaqc.getSerialNumber());
@@ -230,7 +240,6 @@ public class CommunicationService extends Service implements IMessageListener{
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
         return Service.START_NOT_STICKY;
     }
 
@@ -247,14 +256,6 @@ public class CommunicationService extends Service implements IMessageListener{
         public void handleMessage(Message msg) {
             switch (msg.what){
 
-                case TekCast.SERVICE_MSG_REGISTER:
-                    mMessengerList.add(msg.replyTo);
-                    break;
-
-                case TekCast.SERVICE_MSG_UNREGISTER:
-                    mMessengerList.remove(msg.replyTo);
-                    break;
-
                 case TekCast.SERVICE_MSG_COMMAND:
                     IQueueObject command = (IQueueObject) msg.getData().getSerializable(TekCast.SERVICE_COMMAND_KEY);
                     String commandSerial = msg.getData().getString(TekCast.SERVICE_SERIAL_KEY);
@@ -264,7 +265,7 @@ public class CommunicationService extends Service implements IMessageListener{
                 case TekCast.SERVICE_MSG_TASK:
                         List<IQueueObject> task = (List<IQueueObject>) msg.getData().getSerializable(TekCast.SERVICE_TASK_KEY);
                         String taskSerial = msg.getData().getString(TekCast.SERVICE_SERIAL_KEY);
-                        executeTask(taskSerial, task);
+                        executeTask(taskSerial, task, msg.replyTo);
 
                     break;
 
@@ -275,15 +276,14 @@ public class CommunicationService extends Service implements IMessageListener{
                 case TekCast.SERVICE_MSG_DISCONNECT:
                     disconnectFromTekdaqc((ATekdaqc) msg.getData().getSerializable(TekCast.SERVICE_TEKDAQC_DISCONNECT),msg.replyTo);
                     break;
-
             }
-
         }
     }
 
     @Override
     public void onErrorMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        if (mMessengerList.size() > 0) {
+
+        if (mMessengerMap.get(tekdaqc.getSerialNumber()).size() > 0) {
             Bundle dataBundle = new Bundle();
             dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE, message);
@@ -298,7 +298,8 @@ public class CommunicationService extends Service implements IMessageListener{
 
     @Override
     public void onStatusMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        if (mMessengerList.size() > 0) {
+
+        if (mMessengerMap.get(tekdaqc.getSerialNumber()).size() > 0) {
             Bundle dataBundle = new Bundle();
             dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE, message);
@@ -313,7 +314,8 @@ public class CommunicationService extends Service implements IMessageListener{
 
     @Override
     public void onDebugMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        if (mMessengerList.size() > 0) {
+
+        if (mMessengerMap.get(tekdaqc.getSerialNumber()).size() > 0) {
             Bundle dataBundle = new Bundle();
             dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE, message);
@@ -328,7 +330,8 @@ public class CommunicationService extends Service implements IMessageListener{
 
     @Override
     public void onCommandDataMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        if (mMessengerList.size() > 0) {
+
+        if (mMessengerMap.get(tekdaqc.getSerialNumber()).size() > 0) {
             Bundle dataBundle = new Bundle();
             dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE, message);
@@ -343,7 +346,8 @@ public class CommunicationService extends Service implements IMessageListener{
 
     @Override
     public void onAnalogInputDataReceived(ATekdaqc tekdaqc, AnalogInputData data) {
-        if (mMessengerList.size() > 0) {
+
+        if (mMessengerMap.get(tekdaqc.getSerialNumber()).size() > 0) {
             Bundle dataBundle = new Bundle();
             dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE, data);
@@ -359,7 +363,8 @@ public class CommunicationService extends Service implements IMessageListener{
 
     @Override
     public void onDigitalInputDataReceived(ATekdaqc tekdaqc, DigitalInputData data) {
-        if (mMessengerList.size() > 0) {
+
+        if (mMessengerMap.get(tekdaqc.getSerialNumber()).size() > 0) {
             Bundle dataBundle = new Bundle();
             dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
             dataBundle.putSerializable(TekCast.DATA_MESSSAGE, data);
@@ -374,7 +379,8 @@ public class CommunicationService extends Service implements IMessageListener{
 
     @Override
     public void onDigitalOutputDataReceived(ATekdaqc tekdaqc, boolean[] data) {
-        if (mMessengerList.size() > 0) {
+
+        if (mMessengerMap.get(tekdaqc.getSerialNumber()).size() > 0) {
             Bundle dataBundle = new Bundle();
             dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
             dataBundle.putBooleanArray(TekCast.DATA_MESSSAGE, data);
@@ -386,7 +392,5 @@ public class CommunicationService extends Service implements IMessageListener{
             sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
         }
     }
-
-
 }
 

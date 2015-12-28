@@ -20,7 +20,7 @@ import java.util.TimerTask;
  * Class which handles the client side communication to the {@link LocatorService} as well as initiates the {@link CommunicationService} to ensure that the
  * {@link Service} is running when a connection attempt is made.}
  *
- * @author Ellis Berry (ejberry@tenkiv.com)
+ * @author Tenkiv (software@tenkiv.com)
  * @since v2.0.0.0
  */
 public class TekdaqcLocatorManager implements ServiceConnection, IServiceListener{

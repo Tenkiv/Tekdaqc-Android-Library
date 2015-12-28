@@ -12,7 +12,7 @@ import com.tenkiv.tekdaqc.communication.command.queue.Task;
  * This ensures that all network operations and communication occurs in a remote {@link Service} while maintaining a similar use pattern and reducing
  * code redundancies between the Android and Java libraries.
  *
- * @author Ellis Berry (ejberry@tenkiv.com)
+ * @author Tenkiv (software@tenkiv.com)
  * @since v2.0.0.0
  */
 public class ClientCommandManager implements ICommandManager {

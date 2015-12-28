@@ -13,7 +13,7 @@ import java.io.IOException;
 /**
  * Class to encapsulate the creation of the therad to establish a telnet connection with a tekdaqc.
  *
- * @author Ellis Berry (ejberry@tenkiv.com)
+ * @author Tenkiv (software@tenkiv.com)
  * @since v2.0.0.0
  */
 public class ServiceConnectionThread extends Thread {
