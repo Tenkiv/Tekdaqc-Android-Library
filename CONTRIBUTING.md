@@ -13,7 +13,6 @@ While the Tekdaqc Android Library collaborators are very happy to assist and pro
 Pull Request Guidelines
 -----------------------
 
-* Changes should be tested with the [Tekdaqc Android Manager](https://github.com/Tenkiv/Tekdaqc-Android-Manager)
 * Affected public classes and functions should have accurate Javadoc. We will use this to update the API docs.
 * Affected documentation, such as tutorials, should be clearly noted in the pull request description so that the collaborators can update them.
 * Source code formatting should be hygienic:
