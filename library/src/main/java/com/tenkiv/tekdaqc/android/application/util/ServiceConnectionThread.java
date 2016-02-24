@@ -1,12 +1,8 @@
 package com.tenkiv.tekdaqc.android.application.util;
 
-import android.os.Messenger;
-import android.util.Log;
-import com.tenkiv.tekdaqc.ATekdaqc;
-import com.tenkiv.tekdaqc.android.application.service.CommunicationService;
-import com.tenkiv.tekdaqc.communication.message.IMessageListener;
-import com.tenkiv.tekdaqc.communication.message.MessageBroadcaster;
-import com.tenkiv.tekdaqc.revd.Tekdaqc_RevD;
+
+
+import com.tenkiv.tekdaqc.hardware.ATekdaqc;
 
 import java.io.IOException;
 

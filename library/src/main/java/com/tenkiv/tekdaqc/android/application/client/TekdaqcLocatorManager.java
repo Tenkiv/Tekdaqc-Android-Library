@@ -1,15 +1,17 @@
-package com.tenkiv.tekdaqc.android.application.service;
+package com.tenkiv.tekdaqc.android.application.client;
 
 import android.app.ActivityManager;
 import android.app.Service;
 import android.content.*;
 import android.os.*;
-import com.tenkiv.tekdaqc.ATekdaqc;
-import com.tenkiv.tekdaqc.android.application.client.Tekdaqc;
+import com.tenkiv.tekdaqc.android.application.service.CommunicationService;
+import com.tenkiv.tekdaqc.android.application.service.LocatorService;
 import com.tenkiv.tekdaqc.android.application.util.IServiceListener;
 import com.tenkiv.tekdaqc.android.application.util.TekCast;
+import com.tenkiv.tekdaqc.hardware.ATekdaqc;
 import com.tenkiv.tekdaqc.locator.Locator;
 import com.tenkiv.tekdaqc.locator.LocatorResponse;
+import com.tenkiv.tekdaqc.locator.OnTekdaqcDiscovered;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,9 +43,9 @@ public class TekdaqcLocatorManager implements ServiceConnection, IServiceListene
     private static final int LOCATOR_CHECK_DELAY = 3500;
 
     /**
-     * The {@link List} of all currently registered {@link Locator.OnTekdaqcDiscovered} listeners.
+     * The {@link List} of all currently registered {@link OnTekdaqcDiscovered} listeners.
      */
-    private static List<Locator.OnTekdaqcDiscovered> mUserListeners;
+    private static List<OnTekdaqcDiscovered> mUserListeners;
 
     /**
      * The {@link TekdaqcCommunicationManager} which needs to be started in order to facilitate communication with the remote {@link Service}.
@@ -81,7 +83,7 @@ public class TekdaqcLocatorManager implements ServiceConnection, IServiceListene
     };
 
 
-    public TekdaqcLocatorManager(Context context, Locator.OnTekdaqcDiscovered listener){
+    public TekdaqcLocatorManager(Context context, OnTekdaqcDiscovered listener){
         mUserListeners = new ArrayList<>();
         mUserListeners.add(listener);
         mContext = context;
@@ -137,20 +139,20 @@ public class TekdaqcLocatorManager implements ServiceConnection, IServiceListene
     }
 
     /**
-     * Method to add a {@link Locator.OnTekdaqcDiscovered} interface to relieve callbacks.
+     * Method to add a {@link OnTekdaqcDiscovered} interface to relieve callbacks.
      * @param listener Listener to be added.
      */
-    public void addLocatorListener(Locator.OnTekdaqcDiscovered listener){
+    public void addLocatorListener(OnTekdaqcDiscovered listener){
         if(!mUserListeners.contains(listener)) {
             mUserListeners.add(listener);
         }
     }
 
     /**
-     * Method to remove a {@link Locator.OnTekdaqcDiscovered} from receiving.
+     * Method to remove a {@link OnTekdaqcDiscovered} from receiving.
      * @param listener Listener to be removed.
      */
-    public void removeLocatorListener(Locator.OnTekdaqcDiscovered listener){
+    public void removeLocatorListener(OnTekdaqcDiscovered listener){
         if(mUserListeners.contains(listener)) {
             mUserListeners.remove(listener);
         }
@@ -177,7 +179,7 @@ public class TekdaqcLocatorManager implements ServiceConnection, IServiceListene
     }
 
     /**
-     * A class which receives broadcasts from the {@link LocatorService} and then notifies all added {@link Locator.OnTekdaqcDiscovered} listeners in {@link TekdaqcLocatorManager}.
+     * A class which receives broadcasts from the {@link LocatorService} and then notifies all added {@link OnTekdaqcDiscovered} listeners in {@link TekdaqcLocatorManager}.
      */
     public static class LocatorReceiver extends BroadcastReceiver{
 
@@ -192,32 +194,33 @@ public class TekdaqcLocatorManager implements ServiceConnection, IServiceListene
 
                 ATekdaqc tekdaqc = new Tekdaqc((LocatorResponse)intent.getExtras().get(TekCast.BROADCAST_TEKDAQC_RESPONSE), mTekdaqcComManager);
 
-                boolean locatedByForeignApp = !(ATekdaqc.getActiveTekdaqcMap().containsKey(tekdaqc.getSerialNumber()));
+                boolean locatedByForeignApp = !(Locator.getActiveTekdaqcMap().containsKey(tekdaqc.getSerialNumber()));
 
                 cullListeners();
 
                 switch (bundle.getInt(TekCast.BROADCAST_CALL_TYPE)) {
 
                     case TekCast.LOCATOR_FIRST:
-                        for(Locator.OnTekdaqcDiscovered listener: mUserListeners) {
+                        RemoteLocator.addTekdaqcToLocatorMap(tekdaqc);
+                        for(OnTekdaqcDiscovered listener: mUserListeners) {
                             listener.onTekdaqcFirstLocated(tekdaqc);
                         }
                         break;
 
                     case TekCast.LOCATOR_LOST:
-                        for(Locator.OnTekdaqcDiscovered listener: mUserListeners) {
+                        RemoteLocator.removeTekdaqcFromLocatorMap(tekdaqc);
+                        for(OnTekdaqcDiscovered listener: mUserListeners) {
                             listener.onTekdaqcNoLongerLocated(tekdaqc);
                         }
                         break;
 
                     case TekCast.LOCATOR_RESPONSE:
                         if(locatedByForeignApp){
-                            ATekdaqc.putTekdaqcInMap(tekdaqc);
-                            for(Locator.OnTekdaqcDiscovered listener: mUserListeners) {
+                            for(OnTekdaqcDiscovered listener: mUserListeners) {
                                 listener.onTekdaqcFirstLocated(tekdaqc);
                             }
                         }else {
-                            for(Locator.OnTekdaqcDiscovered listener: mUserListeners) {
+                            for(OnTekdaqcDiscovered listener: mUserListeners) {
                                 listener.onTekdaqcResponse(tekdaqc);
                             }
                         }
@@ -227,7 +230,7 @@ public class TekdaqcLocatorManager implements ServiceConnection, IServiceListene
         }
 
         private void cullListeners(){
-            for(Locator.OnTekdaqcDiscovered listener: mUserListeners) {
+            for(OnTekdaqcDiscovered listener: mUserListeners) {
                 if(listener == null){
                     mUserListeners.remove(listener);
                 }

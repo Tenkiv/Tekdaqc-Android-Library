@@ -1,7 +1,7 @@
 package com.tenkiv.tekdaqc.android.application.util;
 
 import com.tenkiv.tekdaqc.android.application.service.CommunicationService;
-import com.tenkiv.tekdaqc.android.application.service.TekdaqcCommunicationManager;
+import com.tenkiv.tekdaqc.android.application.client.TekdaqcCommunicationManager;
 
 /**
  * Simple interface to provide callbacks upon {@link CommunicationService} creation.

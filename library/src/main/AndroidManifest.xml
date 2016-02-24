@@ -13,7 +13,7 @@
             android:process=":remote"
             android:exported="false"/>
 
-        <receiver android:name=".application.service.TekdaqcLocatorManager$LocatorReceiver" >
+        <receiver android:name=".application.client.TekdaqcLocatorManager$LocatorReceiver" >
             <intent-filter>
                 <action android:name="com.tenkiv.tekdaqc.LOCATOR" />
             </intent-filter>

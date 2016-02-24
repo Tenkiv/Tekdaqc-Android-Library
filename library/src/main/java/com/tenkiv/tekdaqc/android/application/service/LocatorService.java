@@ -4,17 +4,19 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import com.tenkiv.tekdaqc.ATekdaqc;
+import com.tenkiv.tekdaqc.android.application.client.TekdaqcLocatorManager;
 import com.tenkiv.tekdaqc.android.application.util.TekCast;
+import com.tenkiv.tekdaqc.hardware.ATekdaqc;
 import com.tenkiv.tekdaqc.locator.Locator;
+import com.tenkiv.tekdaqc.locator.OnTekdaqcDiscovered;
 
 /**
- * Class which handles the UDP broadcasts for Tekdaqc location. It then broacasts the discovered Tekdaqcs so they can be received by the {@link TekdaqcLocatorManager}.
+ * Class which handles the UDP broadcasts for Tekdaqc location. It then broadcasts the discovered Tekdaqcs so they can be received by the {@link TekdaqcLocatorManager}.
  *
  * @author Tenkiv (software@tenkiv.com)
  * @since v2.0.0.0
  */
-public  class LocatorService extends Service implements Locator.OnTekdaqcDiscovered{
+public  class LocatorService extends Service implements OnTekdaqcDiscovered {
 
     /**
      * Binder for simple IPC.

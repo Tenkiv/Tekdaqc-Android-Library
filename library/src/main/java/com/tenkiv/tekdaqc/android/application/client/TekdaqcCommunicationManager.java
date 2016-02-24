@@ -1,4 +1,4 @@
-package com.tenkiv.tekdaqc.android.application.service;
+package com.tenkiv.tekdaqc.android.application.client;
 
 import android.app.ActivityManager;
 import android.content.ComponentName;
@@ -6,8 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.*;
-import com.tenkiv.tekdaqc.ATekdaqc;
-import com.tenkiv.tekdaqc.android.application.client.Tekdaqc;
+import com.tenkiv.tekdaqc.android.application.service.CommunicationService;
 import com.tenkiv.tekdaqc.android.application.util.IServiceListener;
 import com.tenkiv.tekdaqc.android.application.util.TekCast;
 import com.tenkiv.tekdaqc.communication.ascii.message.parsing.ASCIIDigitalOutputDataMessage;
@@ -19,10 +18,10 @@ import com.tenkiv.tekdaqc.communication.data_points.DigitalInputData;
 import com.tenkiv.tekdaqc.communication.message.ABoardMessage;
 import com.tenkiv.tekdaqc.communication.message.IMessageListener;
 import com.tenkiv.tekdaqc.communication.message.MessageBroadcaster;
+import com.tenkiv.tekdaqc.hardware.ATekdaqc;
+import com.tenkiv.tekdaqc.locator.ClientMessageHandler;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Tenkiv (software@tenkiv.com)
  * @since v2.0.0.0
  */
-public class TekdaqcCommunicationManager implements ServiceConnection, IMessageListener{
+public class TekdaqcCommunicationManager implements ServiceConnection{
 
     /**
      * The Context.
@@ -50,6 +49,8 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
      */
     private static TekdaqcCommunicationManager mComManager;
 
+    private ClientMessageHandler mMessageHandler = new ClientMessageHandler(Tekdaqc.getMessageBroadcaster());
+
     /**
      * This process's reference to the {@link CommunicationService}'s {@link Messenger}.
      */
@@ -58,18 +59,7 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
     /**
      * The {@link Messenger} for this client.
      */
-    private Messenger mMessenger = new Messenger(new ClientHandler());
-
-    /**
-     * A {@link Map} of all {@link ATekdaqc}s and their serial numbers.
-     */
-    private ConcurrentHashMap<String,ATekdaqc> mTekdaqcMap;
-
-
-    /**
-     * A {@link Map} of all {@link QueueCallback}s and their unique identifiers so that Task callbacks can be conducted across processes.
-     */
-    private ConcurrentHashMap<Double,QueueCallback> mTaskMap;
+    private Messenger mMessenger = new Messenger(mMessageHandler);
 
     /**
      * Variable used to assign UIDs.
@@ -90,10 +80,6 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
         mServiceListener = listener;
 
         mComManager = this;
-
-        mTekdaqcMap = new ConcurrentHashMap<>();
-
-        mTaskMap = new ConcurrentHashMap<>();
 
         Intent comService = new Intent(context, CommunicationService.class);
         context.bindService(comService, this, Context.BIND_AUTO_CREATE);
@@ -197,7 +183,7 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
 
         for(IQueueObject object:commandList){
             if(object instanceof QueueCallback){
-                mTaskMap.put(mUIDAssign, (QueueCallback) object);
+                mMessageHandler.addTaskToMap(mUIDAssign, (QueueCallback) object);
                 ((QueueCallback) object).setUID(mUIDAssign);
                 mUIDAssign++;
             }
@@ -229,7 +215,7 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
             throw new NullPointerException();
         }
 
-        mTekdaqcMap.put(tekdaqc.getSerialNumber(),tekdaqc);
+        mMessageHandler.addTekdaqcToMap(tekdaqc);
 
         Bundle dataBundle = new Bundle();
         dataBundle.putSerializable(TekCast.SERVICE_TEKDAQC_CONNECT,tekdaqc.getLocatorResponse());
@@ -254,6 +240,8 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
         if(tekdaqc == null){
             throw new NullPointerException();
         }
+
+        mMessageHandler.removeTekdaqcFromMap(tekdaqc.getSerialNumber());
 
         Bundle dataBundle = new Bundle();
         dataBundle.putSerializable(TekCast.SERVICE_TEKDAQC_DISCONNECT,tekdaqc);
@@ -282,112 +270,4 @@ public class TekdaqcCommunicationManager implements ServiceConnection, IMessageL
     public void onServiceDisconnected(ComponentName name) {}
 
 
-    @Override
-    public void onErrorMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        MessageBroadcaster.getInstance().broadcastMessage(tekdaqc,message);
-    }
-
-
-    @Override
-    public void onStatusMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        MessageBroadcaster.getInstance().broadcastMessage(tekdaqc,message);
-    }
-
-
-    @Override
-    public void onDebugMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        MessageBroadcaster.getInstance().broadcastMessage(tekdaqc,message);
-
-    }
-
-
-    @Override
-    public void onCommandDataMessageReceived(ATekdaqc tekdaqc, ABoardMessage message) {
-        MessageBroadcaster.getInstance().broadcastMessage(tekdaqc,message);
-    }
-
-
-    @Override
-    public void onAnalogInputDataReceived(ATekdaqc tekdaqc, AnalogInputData data) {
-        MessageBroadcaster.getInstance().broadcastAnalogInputDataPoint(tekdaqc,data);
-    }
-
-
-
-    @Override
-    public void onDigitalInputDataReceived(ATekdaqc tekdaqc, DigitalInputData data) {
-        MessageBroadcaster.getInstance().broadcastDigitalInputDataPoint(tekdaqc,data);
-    }
-
-
-    @Override
-    public void onDigitalOutputDataReceived(ATekdaqc tekdaqc, boolean[] data) {
-        MessageBroadcaster.getInstance().broadcastMessage(tekdaqc,new ASCIIDigitalOutputDataMessage(data));
-    }
-
-
-    private class ClientHandler extends Handler {
-
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what){
-
-                case TekCast.TEKDAQC_ANALOG_INPUT_MESSAGE:
-                    onAnalogInputDataReceived(
-                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
-                            (AnalogInputData)msg.getData().getSerializable(TekCast.DATA_MESSSAGE));
-                    break;
-
-                case TekCast.TEKDAQC_COMMAND_MESSAGE:
-                    onCommandDataMessageReceived(
-                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
-                            (ABoardMessage)msg.getData().getSerializable(TekCast.DATA_MESSSAGE));
-                    break;
-
-                case TekCast.TEKDAQC_DEBUG_MESSAGE:
-                    onDebugMessageReceived(
-                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
-                            (ABoardMessage)msg.getData().getSerializable(TekCast.DATA_MESSSAGE));
-                    break;
-
-                case TekCast.TEKDAQC_DIGITAL_INPUT_MESSAGE:
-                    onDigitalInputDataReceived(
-                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
-                            (DigitalInputData)msg.getData().getSerializable(TekCast.DATA_MESSSAGE));
-                    break;
-
-                case TekCast.TEKDAQC_DIGITAL_OUTPUT_MESSAGE:
-                    onDigitalOutputDataReceived(
-                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
-                            msg.getData().getBooleanArray(TekCast.DATA_MESSSAGE));
-                    break;
-
-                case TekCast.TEKDAQC_ERROR_MESSAGE:
-                    onErrorMessageReceived(
-                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
-                            (ABoardMessage)msg.getData().getSerializable(TekCast.DATA_MESSSAGE));
-                    break;
-
-                case TekCast.TEKDAQC_STATUS_MESSAGE:
-                    onStatusMessageReceived(
-                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
-                            (ABoardMessage)msg.getData().getSerializable(TekCast.DATA_MESSSAGE));
-                    break;
-
-                case TekCast.TEKDAQC_TASK_COMPLETE:
-                    mTaskMap.get(
-                            msg.getData().getDouble(TekCast.DATA_MESSSAGE_UID)).success(
-                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)));
-                    break;
-
-                case TekCast.TEKDAQC_TASK_FAILURE:
-                    mTaskMap.get(
-                            msg.getData().getDouble(TekCast.DATA_MESSSAGE_UID)).failure(
-                            mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)));
-                    break;
-
-
-            }
-        }
-    }
 }

@@ -2,7 +2,6 @@ package com.tenkiv.tekdaqc.android.application.client;
 
 import android.app.Service;
 import com.tenkiv.tekdaqc.android.application.service.CommunicationService;
-import com.tenkiv.tekdaqc.android.application.service.TekdaqcCommunicationManager;
 import com.tenkiv.tekdaqc.communication.command.queue.ICommandManager;
 import com.tenkiv.tekdaqc.communication.command.queue.IQueueObject;
 import com.tenkiv.tekdaqc.communication.command.queue.Task;
