@@ -49,7 +49,7 @@ public class TekdaqcCommunicationManager implements ServiceConnection{
      */
     private static TekdaqcCommunicationManager mComManager;
 
-    private ClientMessageHandler mMessageHandler = new ClientMessageHandler(Tekdaqc.getMessageBroadcaster());
+    private ClientMessageHandler mMessageHandler;
 
     /**
      * This process's reference to the {@link CommunicationService}'s {@link Messenger}.
@@ -59,7 +59,7 @@ public class TekdaqcCommunicationManager implements ServiceConnection{
     /**
      * The {@link Messenger} for this client.
      */
-    private Messenger mMessenger = new Messenger(mMessageHandler);
+    private Messenger mMessenger;
 
     /**
      * Variable used to assign UIDs.
@@ -80,6 +80,10 @@ public class TekdaqcCommunicationManager implements ServiceConnection{
         mServiceListener = listener;
 
         mComManager = this;
+
+        mMessageHandler = new ClientMessageHandler(context, Tekdaqc.getMessageBroadcaster());
+
+        mMessenger = new Messenger(mMessageHandler);
 
         Intent comService = new Intent(context, CommunicationService.class);
         context.bindService(comService, this, Context.BIND_AUTO_CREATE);

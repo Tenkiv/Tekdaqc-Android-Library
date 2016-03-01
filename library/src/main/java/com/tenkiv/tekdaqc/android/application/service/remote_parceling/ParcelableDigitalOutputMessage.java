@@ -16,7 +16,7 @@ public class ParcelableDigitalOutputMessage extends ASCIIDigitalOutputDataMessag
         setData(message);
     }
 
-    protected ParcelableDigitalOutputMessage(Parcel in) {
+    public ParcelableDigitalOutputMessage(Parcel in) {
         in.readBooleanArray(mDigitalOutputArray);
         mTimestamp = in.readLong();
     }

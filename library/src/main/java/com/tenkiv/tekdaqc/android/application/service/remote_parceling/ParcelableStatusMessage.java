@@ -16,7 +16,7 @@ public class ParcelableStatusMessage extends ASCIIStatusMessage implements Parce
         setData(message);
     }
 
-    protected ParcelableStatusMessage(Parcel in) {
+    public ParcelableStatusMessage(Parcel in) {
         mMessageString = in.readString();
         mTimestamp = in.readLong();
     }

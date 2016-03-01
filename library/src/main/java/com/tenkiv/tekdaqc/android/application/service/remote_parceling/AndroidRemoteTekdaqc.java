@@ -1,6 +1,7 @@
 package com.tenkiv.tekdaqc.android.application.service.remote_parceling;
 
 import com.tenkiv.tekdaqc.android.application.service.remote_parceling.AndroidRemoteParser;
+import com.tenkiv.tekdaqc.communication.ascii.executors.ASCIIParsingExecutor;
 import com.tenkiv.tekdaqc.hardware.Tekdaqc_RevD;
 import com.tenkiv.tekdaqc.locator.LocatorResponse;
 
@@ -19,6 +20,10 @@ public class AndroidRemoteTekdaqc extends Tekdaqc_RevD{
 
     public AndroidRemoteTekdaqc(){
         super();
-        mParsingExecutor = new AndroidRemoteParser(1);
+    }
+
+    @Override
+    protected ASCIIParsingExecutor getParingExecutor() {
+        return new AndroidRemoteParser(1);
     }
 }

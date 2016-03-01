@@ -14,7 +14,7 @@ public class ParcelableAnalogInputData extends AnalogInputData implements Parcel
     }
 
 
-    protected ParcelableAnalogInputData(Parcel in) {
+    public ParcelableAnalogInputData(Parcel in) {
         mPhysicalChannel = in.readInt();
         mName = in.readString();
         mTimeStamp = in.readLong();

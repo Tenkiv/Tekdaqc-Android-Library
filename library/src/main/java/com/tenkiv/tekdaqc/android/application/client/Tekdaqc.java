@@ -62,6 +62,7 @@ public class Tekdaqc extends Tekdaqc_RevD {
 
     @Override
     public void disconnectCleanly() {
+        isConnected = false;
         mManager.disconnectFromTekdaqc(this);
     }
 

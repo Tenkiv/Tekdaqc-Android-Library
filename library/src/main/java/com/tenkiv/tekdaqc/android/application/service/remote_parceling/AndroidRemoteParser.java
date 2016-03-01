@@ -3,7 +3,6 @@ package com.tenkiv.tekdaqc.android.application.service.remote_parceling;
 import com.tenkiv.tekdaqc.communication.ascii.executors.ASCIIParsingExecutor;
 import com.tenkiv.tekdaqc.communication.ascii.message.parsing.AASCIIMessage;
 import com.tenkiv.tekdaqc.communication.ascii.message.parsing.ASCIIMessageUtils;
-import com.tenkiv.tekdaqc.communication.executors.AParsingExecutor;
 
 import java.util.concurrent.Callable;
 

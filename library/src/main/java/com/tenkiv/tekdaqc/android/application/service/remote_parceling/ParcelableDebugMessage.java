@@ -16,7 +16,7 @@ public class ParcelableDebugMessage extends ASCIIDebugMessage implements Parcela
         setData(message);
     }
 
-    protected ParcelableDebugMessage(Parcel in) {
+    public ParcelableDebugMessage(Parcel in) {
         mMessageString = in.readString();
         mTimestamp = in.readLong();
     }

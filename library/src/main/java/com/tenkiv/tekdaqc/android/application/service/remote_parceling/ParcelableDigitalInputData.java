@@ -14,7 +14,7 @@ public class ParcelableDigitalInputData extends DigitalInputData implements Parc
         super(channel, name, timestamp, state);
     }
 
-    protected ParcelableDigitalInputData(Parcel in) {
+    public ParcelableDigitalInputData(Parcel in) {
         mPhysicalChannel = in.readInt();
         mName = in.readString();
         mTimeStamp = in.readLong();

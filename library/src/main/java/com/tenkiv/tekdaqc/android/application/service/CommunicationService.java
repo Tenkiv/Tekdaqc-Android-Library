@@ -3,6 +3,7 @@ package com.tenkiv.tekdaqc.android.application.service;
 import android.app.Service;
 import android.content.Intent;
 import android.os.*;
+import android.util.Log;
 import com.tenkiv.tekdaqc.android.application.service.remote_parceling.*;
 import com.tenkiv.tekdaqc.android.application.util.ServiceConnectionThread;
 import com.tenkiv.tekdaqc.android.application.util.TekCast;
@@ -15,6 +16,7 @@ import com.tenkiv.tekdaqc.communication.message.IMessageListener;
 import com.tenkiv.tekdaqc.communication.tasks.ITaskComplete;
 import com.tenkiv.tekdaqc.hardware.ATekdaqc;
 import com.tenkiv.tekdaqc.hardware.Tekdaqc_RevD;
+import com.tenkiv.tekdaqc.locator.Locator;
 import com.tenkiv.tekdaqc.locator.LocatorResponse;
 
 import java.io.IOException;
@@ -52,6 +54,8 @@ public class CommunicationService extends Service implements IMessageListener{
      * The {@link Map} of all connected {@link ATekdaqc}s.
      */
     private ConcurrentHashMap<String,ATekdaqc> mTekdaqcMap = new ConcurrentHashMap<>();
+
+    private ConcurrentHashMap<String,ServiceConnectionThread> mConnectionMap = new ConcurrentHashMap<>();
 
     @Override
     public void onDestroy() {
@@ -147,10 +151,10 @@ public class CommunicationService extends Service implements IMessageListener{
         switch (response.getType()){
             case 'D':
             case 'E':
-                tekdaqc = new Tekdaqc_RevD(response);
+                tekdaqc = new AndroidRemoteTekdaqc(response);
                 break;
             default:
-                tekdaqc = new Tekdaqc_RevD(response);
+                tekdaqc = new AndroidRemoteTekdaqc(response);
                 break;
         }
 
@@ -189,14 +193,15 @@ public class CommunicationService extends Service implements IMessageListener{
      * @param messenger The {@link Messenger} associated with the connection.
      */
     public void connectToTekdaqc(LocatorResponse response, Messenger messenger){
-
         addMessengerToCallbackMap(response.getSerial(),messenger);
 
         if(!mTekdaqcMap.containsKey(response.getSerial())) {
             ATekdaqc tekdaqc = generateTekdaqc(response);
             tekdaqc.registerListener(this);
             mTekdaqcMap.put(tekdaqc.getSerialNumber(), tekdaqc);
-            new ServiceConnectionThread(tekdaqc).start();
+            mConnectionMap.put(tekdaqc.getSerialNumber(),new ServiceConnectionThread(tekdaqc));
+
+            mConnectionMap.get(tekdaqc.getSerialNumber()).start();
         }
     }
 
@@ -207,13 +212,29 @@ public class CommunicationService extends Service implements IMessageListener{
      * @param messenger {@link Messenger} to remove from notification.
      */
     public void disconnectFromTekdaqc(ATekdaqc tekdaqc, Messenger messenger){
-        tekdaqc.unregisterListener(this);
 
         mMessengerMap.get(tekdaqc.getSerialNumber()).remove(messenger);
 
-        mTekdaqcMap.get(tekdaqc.getSerialNumber()).halt();
-        mTekdaqcMap.get(tekdaqc.getSerialNumber()).disconnectCleanly();
-        mTekdaqcMap.remove(tekdaqc.getSerialNumber());
+        if(mMessengerMap.get(tekdaqc.getSerialNumber()).size() == 0) {
+            try {
+
+                mMessengerMap.remove(tekdaqc.getSerialNumber());
+
+                tekdaqc.unregisterListener(this);
+                mTekdaqcMap.get(tekdaqc.getSerialNumber()).halt();
+                mTekdaqcMap.get(tekdaqc.getSerialNumber()).disconnect();
+
+                mTekdaqcMap.remove(tekdaqc.getSerialNumber());
+
+                mConnectionMap.get(tekdaqc.getSerialNumber()).join();
+                mConnectionMap.remove(tekdaqc.getSerialNumber());
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 

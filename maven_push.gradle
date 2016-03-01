@@ -93,7 +93,7 @@ afterEvaluate { project ->
         localProperties.load(project.rootProject.file('local.properties').newDataInputStream())
 
         allprojects { ext."signing.keyId" = localProperties.getProperty('keyId') }
-        allprojects { ext."signing.secretKeyRingFile" = localProperties.getProperty('secretKeyRingFile')}
+        allprojects { ext."signing.secretKeyRingFile" = localProperties.getProperty('secretKeyRingFile') }
         allprojects { ext."signing.password" = localProperties.getProperty('password') }
 
         sign configurations.archives
@@ -115,15 +115,15 @@ afterEvaluate { project ->
         from android.sourceSets.main.java.sourceFiles
     }
 
+    task copyLibs(type: Copy) {
+        from configurations.compile
+        into 'libs'
+    }
+
     artifacts {
 
         //archives packageReleaseJar
         archives androidSourcesJar
         archives androidJavadocsJar
-    }
-
-    task copyLibs(type: Copy) {
-        from configurations.compile
-        into 'libs'
     }
 }

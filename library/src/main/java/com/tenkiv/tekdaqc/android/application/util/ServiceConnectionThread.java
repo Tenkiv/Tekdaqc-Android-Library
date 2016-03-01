@@ -2,12 +2,13 @@ package com.tenkiv.tekdaqc.android.application.util;
 
 
 
+import android.util.Log;
 import com.tenkiv.tekdaqc.hardware.ATekdaqc;
 
 import java.io.IOException;
 
 /**
- * Class to encapsulate the creation of the therad to establish a telnet connection with a tekdaqc.
+ * Class to encapsulate the creation of the thread to establish a telnet connection with a tekdaqc.
  *
  * @author Tenkiv (software@tenkiv.com)
  * @since v2.0.0.0

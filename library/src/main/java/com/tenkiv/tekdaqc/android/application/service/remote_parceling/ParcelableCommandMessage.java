@@ -16,7 +16,7 @@ public class ParcelableCommandMessage extends ASCIICommandMessage implements Par
         setData(message);
     }
 
-    protected ParcelableCommandMessage(Parcel in) {
+    public ParcelableCommandMessage(Parcel in) {
         mMessageString = in.readString();
         mTimestamp = in.readLong();
     }

@@ -1,17 +1,16 @@
-package com.tenkiv.tekdaqc.android.application.client;
+package com.tenkiv.tekdaqc.locator;
 
 import android.app.ActivityManager;
 import android.app.Service;
 import android.content.*;
 import android.os.*;
+import com.tenkiv.tekdaqc.android.application.client.Tekdaqc;
+import com.tenkiv.tekdaqc.android.application.client.TekdaqcCommunicationManager;
 import com.tenkiv.tekdaqc.android.application.service.CommunicationService;
 import com.tenkiv.tekdaqc.android.application.service.LocatorService;
 import com.tenkiv.tekdaqc.android.application.util.IServiceListener;
 import com.tenkiv.tekdaqc.android.application.util.TekCast;
 import com.tenkiv.tekdaqc.hardware.ATekdaqc;
-import com.tenkiv.tekdaqc.locator.Locator;
-import com.tenkiv.tekdaqc.locator.LocatorResponse;
-import com.tenkiv.tekdaqc.locator.OnTekdaqcDiscovered;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -201,14 +200,14 @@ public class TekdaqcLocatorManager implements ServiceConnection, IServiceListene
                 switch (bundle.getInt(TekCast.BROADCAST_CALL_TYPE)) {
 
                     case TekCast.LOCATOR_FIRST:
-                        RemoteLocator.addTekdaqcToLocatorMap(tekdaqc);
+                        Locator.addTekdaqctoMap(tekdaqc);
                         for(OnTekdaqcDiscovered listener: mUserListeners) {
                             listener.onTekdaqcFirstLocated(tekdaqc);
                         }
                         break;
 
                     case TekCast.LOCATOR_LOST:
-                        RemoteLocator.removeTekdaqcFromLocatorMap(tekdaqc);
+                        Locator.removeTekdaqcForSerial(tekdaqc.getSerialNumber());
                         for(OnTekdaqcDiscovered listener: mUserListeners) {
                             listener.onTekdaqcNoLongerLocated(tekdaqc);
                         }

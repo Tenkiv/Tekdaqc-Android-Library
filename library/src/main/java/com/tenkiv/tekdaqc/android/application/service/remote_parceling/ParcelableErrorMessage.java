@@ -16,7 +16,7 @@ public class ParcelableErrorMessage extends ASCIIErrorMessage implements Parcela
         setData(message);
     }
 
-    protected ParcelableErrorMessage(Parcel in) {
+    public ParcelableErrorMessage(Parcel in) {
         mMessageString = in.readString();
         mTimestamp = in.readLong();
     }
