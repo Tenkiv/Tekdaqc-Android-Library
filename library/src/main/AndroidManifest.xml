@@ -2,20 +2,22 @@
     package="com.tenkiv.tekdaqc.android"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-sdk android:minSdkVersion="5"/>
-
-    <application
-        android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name">
+    <application>
 
         <service
-            android:name=".application.service.TekdaqcLocatorManager$LocatorService"
+            android:name=".application.service.LocatorService"
             android:exported="false"/>
 
         <service
-            android:name=".application.service.TekdaqcCommunicationManager$ComService"
+            android:name=".application.service.CommunicationService"
+            android:process=":remote"
             android:exported="false"/>
+
+        <receiver android:name="com.tenkiv.tekdaqc.locator.TekdaqcLocatorManager$LocatorReceiver" >
+            <intent-filter>
+                <action android:name="com.tenkiv.tekdaqc.LOCATOR" />
+            </intent-filter>
+        </receiver>
 
     </application>
 
