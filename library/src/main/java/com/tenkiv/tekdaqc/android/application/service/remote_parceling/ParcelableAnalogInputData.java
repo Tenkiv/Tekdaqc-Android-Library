@@ -5,7 +5,10 @@ import android.os.Parcelable;
 import com.tenkiv.tekdaqc.communication.data_points.AnalogInputData;
 
 /**
- * Created by ejberry on 2/15/16.
+ * Wrapper to allow analog data messages to be turned into {@link Parcelable}.
+ *
+ * @author Tenkiv (software@tenkiv.com)
+ * @since v1.0.0.0
  */
 public class ParcelableAnalogInputData extends AnalogInputData implements Parcelable{
 

@@ -1,8 +1,5 @@
 package com.tenkiv.tekdaqc.android.application.util;
 
-
-
-import android.util.Log;
 import com.tenkiv.tekdaqc.hardware.ATekdaqc;
 
 import java.io.IOException;

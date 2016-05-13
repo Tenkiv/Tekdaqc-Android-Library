@@ -5,10 +5,10 @@ import android.os.Parcelable;
 import com.tenkiv.tekdaqc.communication.ascii.message.parsing.ASCIICommandMessage;
 
 /**
- * Wrapper to allow messages to be turned into {@link Parcelable}.
+ * Wrapper to allow Command messages to be turned into {@link Parcelable}.
  *
  * @author Tenkiv (software@tenkiv.com)
- * @since v1.0.0.0
+ * @since v2.0.0.0
  */
 public class ParcelableCommandMessage extends ASCIICommandMessage implements Parcelable {
 

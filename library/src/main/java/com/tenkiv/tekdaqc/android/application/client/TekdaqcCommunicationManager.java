@@ -9,22 +9,14 @@ import android.os.*;
 import com.tenkiv.tekdaqc.android.application.service.CommunicationService;
 import com.tenkiv.tekdaqc.android.application.util.IServiceListener;
 import com.tenkiv.tekdaqc.android.application.util.TekCast;
-import com.tenkiv.tekdaqc.communication.ascii.message.parsing.ASCIIDigitalOutputDataMessage;
 import com.tenkiv.tekdaqc.communication.command.queue.IQueueObject;
 import com.tenkiv.tekdaqc.communication.command.queue.QueueCallback;
 import com.tenkiv.tekdaqc.communication.command.queue.Task;
-import com.tenkiv.tekdaqc.communication.data_points.AnalogInputData;
-import com.tenkiv.tekdaqc.communication.data_points.DigitalInputData;
-import com.tenkiv.tekdaqc.communication.message.ABoardMessage;
-import com.tenkiv.tekdaqc.communication.message.IMessageListener;
-import com.tenkiv.tekdaqc.communication.message.MessageBroadcaster;
 import com.tenkiv.tekdaqc.hardware.ATekdaqc;
 import com.tenkiv.tekdaqc.locator.ClientMessageHandler;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Class which manages the connection between commands and data sent through {@link Tekdaqc} objects and {@link CommunicationService}.

@@ -3,7 +3,6 @@ package com.tenkiv.tekdaqc.android.application.service;
 import android.app.Service;
 import android.content.Intent;
 import android.os.*;
-import android.util.Log;
 import com.tenkiv.tekdaqc.android.application.service.remote_parceling.*;
 import com.tenkiv.tekdaqc.android.application.util.ServiceConnectionThread;
 import com.tenkiv.tekdaqc.android.application.util.TekCast;
@@ -15,8 +14,6 @@ import com.tenkiv.tekdaqc.communication.message.ABoardMessage;
 import com.tenkiv.tekdaqc.communication.message.IMessageListener;
 import com.tenkiv.tekdaqc.communication.tasks.ITaskComplete;
 import com.tenkiv.tekdaqc.hardware.ATekdaqc;
-import com.tenkiv.tekdaqc.hardware.Tekdaqc_RevD;
-import com.tenkiv.tekdaqc.locator.Locator;
 import com.tenkiv.tekdaqc.locator.LocatorResponse;
 
 import java.io.IOException;

@@ -6,7 +6,10 @@ import com.tenkiv.tekdaqc.communication.data_points.DigitalInputData;
 import com.tenkiv.tekdaqc.utility.DigitalState;
 
 /**
- * Created by ejberry on 2/15/16.
+ * Wrapper to allow digital input data messages to be turned into {@link Parcelable}.
+ *
+ * @author Tenkiv (software@tenkiv.com)
+ * @since v2.0.0.0
  */
 public class ParcelableDigitalInputData extends DigitalInputData implements Parcelable {
 

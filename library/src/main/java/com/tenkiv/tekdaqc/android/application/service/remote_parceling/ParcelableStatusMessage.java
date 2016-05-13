@@ -5,7 +5,7 @@ import android.os.Parcelable;
 import com.tenkiv.tekdaqc.communication.ascii.message.parsing.ASCIIStatusMessage;
 
 /**
- * Wrapper to allow messages to be turned into {@link Parcelable}.
+ * Wrapper to allow status messages to be turned into {@link Parcelable}.
  *
  * @author Tenkiv (software@tenkiv.com)
  * @since v1.0.0.0

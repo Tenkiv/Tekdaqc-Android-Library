@@ -1,6 +1,5 @@
 package com.tenkiv.tekdaqc.android.application.service.remote_parceling;
 
-import com.tenkiv.tekdaqc.android.application.service.remote_parceling.AndroidRemoteParser;
 import com.tenkiv.tekdaqc.communication.ascii.executors.ASCIIParsingExecutor;
 import com.tenkiv.tekdaqc.hardware.Tekdaqc_RevD;
 import com.tenkiv.tekdaqc.locator.LocatorResponse;

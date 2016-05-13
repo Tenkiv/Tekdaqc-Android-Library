@@ -5,7 +5,7 @@ import com.tenkiv.tekdaqc.communication.ascii.message.parsing.ASCIIDigitalInputD
 import com.tenkiv.tekdaqc.communication.data_points.DataPoint;
 
 /**
- * Wrapper to allow messages to be turned into {@link Parcelable}.
+ * Wrapper to allow digital input messages to be turned into {@link Parcelable}.
  *
  * @author Tenkiv (software@tenkiv.com)
  * @since v1.0.0.0

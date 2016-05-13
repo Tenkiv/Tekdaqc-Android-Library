@@ -54,8 +54,8 @@ public class ClientMessageHandler extends Handler {
 
 
     /**
-     *
-     * @param tekdaqc
+     * Adds ATekdaqc to {@link ClientMessageHandler} list.
+     * @param tekdaqc ATekdaqc to be added.
      */
     public void addTekdaqcToMap(final ATekdaqc tekdaqc){
         if(!mTekdaqcMap.containsKey(tekdaqc.getSerialNumber())) {

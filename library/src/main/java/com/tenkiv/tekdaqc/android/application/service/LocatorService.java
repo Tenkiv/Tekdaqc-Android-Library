@@ -87,6 +87,7 @@ public  class LocatorService extends Service implements OnTekdaqcDiscovered {
 
     @Override
     public void onTekdaqcResponse(ATekdaqc board) {
+        if(board == null){return;}
         Intent broadcast = new Intent(TekCast.BROADCAST_URI);
         broadcast.putExtra(TekCast.BROADCAST_TEKDAQC_RESPONSE, board.getLocatorResponse());
         broadcast.putExtra(TekCast.BROADCAST_CALL_TYPE,TekCast.LOCATOR_RESPONSE);
@@ -95,6 +96,7 @@ public  class LocatorService extends Service implements OnTekdaqcDiscovered {
 
     @Override
     public void onTekdaqcFirstLocated(ATekdaqc board) {
+        if(board == null){return;}
         Intent broadcast = new Intent(TekCast.BROADCAST_URI);
         broadcast.putExtra(TekCast.BROADCAST_TEKDAQC_RESPONSE, board.getLocatorResponse());
         broadcast.putExtra(TekCast.BROADCAST_CALL_TYPE,TekCast.LOCATOR_FIRST);
@@ -104,6 +106,7 @@ public  class LocatorService extends Service implements OnTekdaqcDiscovered {
 
     @Override
     public void onTekdaqcNoLongerLocated(ATekdaqc board) {
+        if(board == null){return;}
         Intent broadcast = new Intent(TekCast.BROADCAST_URI);
         broadcast.putExtra(TekCast.BROADCAST_TEKDAQC_RESPONSE, board.getLocatorResponse());
         broadcast.putExtra(TekCast.BROADCAST_CALL_TYPE,TekCast.LOCATOR_LOST);
