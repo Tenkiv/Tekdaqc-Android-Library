@@ -1,16 +1,14 @@
 Tekdaqc-Android-Library
 =======================
 
-An Android library project wrapper of the [Tekdaqc Java Library](https://github.com/Tenkiv/Tekdaqc-Java-Library).
+An Android library project for use of the Tekdaqc, data aquistion system.
 
 Join [Intelligent Automation, Computer Interface, & DAQ Community](https://plus.google.com/u/0/communities/109351353187504550254) on [![DAQ Community on Google Plus](https://ssl.gstatic.com/images/icons/gplus-16.png)](https://plus.google.com/u/0/communities/109351353187504550254) to stay up-to-date on the latest news.
-
-The [Tekdaqc Android Manager](https://github.com/Tenkiv/Tekdaqc-Android-Manager) project is an open source, Android specific version of our [Tekdaqc Manager](https://github.com/Tenkiv/Tekdaqc-Manager), originally created by [Ian Thomas at ToxicBakery](https://github.com/ToxicBakery) as an example use of this library. [Check it out!](https://github.com/Tenkiv/Tekdaqc-Android-Manager)
 
 ## Using the Tekdaqc Android Library
 
 ### Dependencies
-* [Tekdaqc Java Library](https://github.com/Tenkiv/Tekdaqc-Java-Library)
+* [Tekdaqc Java Core Library](https://github.com/Tenkiv/Tekdaqc-Java-Core-Library)
 
 ### Setup
 
@@ -18,37 +16,22 @@ Currently we only have Android Studio project files included with the repository
 
 * If using gradle, add the following line to your `dependencies` section of your build script:
 ```gradle
- provided 'com.tenkiv.tekdaqc.android:android-library:1.0.0.1'
+ provided 'com.tenkiv.tekdaqc.android:android-library:2.1.2.0'
  ```
 * The associated Maven descriptor is:
 ```xml 
 <dependency>
   <groupId>com.tenkiv.tekdaqc.android</groupId>
   <artifactId>android-library</artifactId>
-  <version>1.0.0.0</version>
+  <version>2.1.2.0</version>
   <type>aar</type>
-</dependency>
-```
-
-Due to its dependency on the [Tekdaqc Java Library](https://github.com/Tenkiv/Tekdaqc-Java-Library), you will also need to add it as a dependency to your script:
-
-* For gradle:
-```gradle
- provided 'com.tenkiv.tekdaqc:java-library:1.0.0.0'
- ```
-
-* For Maven
-```xml
-<dependency>
-  <groupId>com.tenkiv.tekdaqc</groupId>
-  <artifactId>java-library</artifactId>
-  <version>1.0.0.0</version>
 </dependency>
 ```
 
 ## More Information
 
 ### Other Tekdaqc GIT Repositories
+* [Tekdaqc Java Core Library](https://github.com/Tenkiv/Tekdaqc-Java-Core-Library)
 * [Tekdaqc Java Library](https://github.com/Tenkiv/Tekdaqc-Java-Library)
 * [Tekdaqc Firmware](https://github.com/Tenkiv/Tekdaqc-Firmware)
 
