@@ -67,7 +67,7 @@ public class Tekdaqc extends Tekdaqc_RevD {
     }
 
     public void ceaseCommunication(){
-        mManager.stopCommunicationManager();
+        TekdaqcCommunicationManager.stopCommunicationManager();
     }
 
     @Override

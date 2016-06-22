@@ -1,1 +1,4 @@
 include ':library'
+
+include ':shared-java-library'
+project(':shared-java-library').projectDir = new File(rootDir,'../Java-Shared-Library/shared-lib')

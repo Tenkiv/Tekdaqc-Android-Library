@@ -16,6 +16,7 @@ local.properties
 # Android Studio
 *.iml
 /.idea
+.idea
 *.jar
 #.idea/workspace.xml - remove # and delete .idea if it better suit your needs.
 .gradle

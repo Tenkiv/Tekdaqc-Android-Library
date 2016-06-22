@@ -111,9 +111,15 @@ public class TekdaqcCommunicationManager implements ServiceConnection{
     /**
      * Unbinds the manager from the service.
      */
-    public void stopCommunicationManager() {
+    public void selfStopCommunicationManager() {
         mContext.unbindService(this);
 
+    }
+
+    public static void stopCommunicationManager(){
+        if(mComManager != null){
+            mComManager.selfStopCommunicationManager();
+        }
     }
 
 

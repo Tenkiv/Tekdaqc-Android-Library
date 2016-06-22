@@ -14,19 +14,18 @@
  * limitations under the License.6
  */
 
-apply plugin: 'com.android.library'
 apply plugin: 'maven'
 apply plugin: 'signing'
+apply plugin: 'android-library'
 
 group = 'com.tenkiv.tekdaqc.android'
-version = "2.1.2.0-SNAPSHOT"
+version = "2.1.2.2"
 if (version.endsWith('-SNAPSHOT')) {
     status = 'integration'
 } else {
     status = 'release'
 }
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 
@@ -38,6 +37,11 @@ android {
         minSdkVersion 14
         targetSdkVersion 21
     }
+
+    configurations{
+        archives {
+        extendsFrom configurations.default
+    }}
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
@@ -52,9 +56,12 @@ android {
 }
 
 dependencies {
-    provided 'com.android.support:support-v13:21.0.0'
-    compile 'com.tenkiv.tekdaqc:shared-java-library:1.0.0.0-SNAPSHOT'
+    compile fileTree(dir: "${projectDir}/libs")
+    compile 'com.android.support:support-v13:21.0.0'
 
+    provided project(':shared-java-library'),{
+        transitive = false
+    }
 }
 
 apply from: '../maven_push.gradle'
