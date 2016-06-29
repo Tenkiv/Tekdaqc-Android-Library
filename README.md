@@ -23,7 +23,7 @@ Currently we only have Android Studio project files included with the repository
 <dependency>
   <groupId>com.tenkiv.tekdaqc.android</groupId>
   <artifactId>android-library</artifactId>
-  <version>2.1.2.2</version>
+  <version>2.1.2.3</version>
   <type>aar</type>
 </dependency>
 ```
