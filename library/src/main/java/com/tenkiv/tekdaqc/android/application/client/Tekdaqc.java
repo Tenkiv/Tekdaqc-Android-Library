@@ -76,6 +76,6 @@ public class Tekdaqc extends Tekdaqc_RevD {
     }
 
     protected static MessageBroadcaster getMessageBroadcaster(){
-        return messageBroadcaster;
+        return mMessageBroadcaster;
     }
 }

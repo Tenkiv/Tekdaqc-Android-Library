@@ -19,7 +19,7 @@ apply plugin: 'signing'
 apply plugin: 'android-library'
 
 group = 'com.tenkiv.tekdaqc.android'
-version = "2.1.2.2"
+version = "2.1.2.3"
 if (version.endsWith('-SNAPSHOT')) {
     status = 'integration'
 } else {
@@ -58,7 +58,7 @@ android {
 dependencies {
     compile fileTree(dir: "${projectDir}/libs")
     compile 'com.android.support:support-v13:21.0.0'
-
+    compile(group: 'commons-net', name: 'commons-net', version: '3.3', ext: 'jar')
     provided project(':shared-java-library'),{
         transitive = false
     }
