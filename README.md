@@ -16,14 +16,14 @@ Currently we only have Android Studio project files included with the repository
 
 * If using gradle, add the following line to your `dependencies` section of your build script:
 ```gradle
- provided 'com.tenkiv.tekdaqc.android:android-library:2.1.2.0'
+ provided 'com.tenkiv.tekdaqc.android:android-library:2.1.2.2'
  ```
 * The associated Maven descriptor is:
 ```xml 
 <dependency>
   <groupId>com.tenkiv.tekdaqc.android</groupId>
   <artifactId>android-library</artifactId>
-  <version>2.1.2.0</version>
+  <version>2.1.2.2</version>
   <type>aar</type>
 </dependency>
 ```
