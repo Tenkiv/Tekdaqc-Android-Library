@@ -6,17 +6,16 @@ import android.os.Message;
 import android.os.Messenger;
 import android.util.Log;
 import com.tenkiv.tekdaqc.android.application.client.TekdaqcCommunicationManager;
-import com.tenkiv.tekdaqc.android.application.util.TekCast;
 import com.tenkiv.tekdaqc.communication.ascii.message.parsing.ASCIIDigitalOutputDataMessage;
 import com.tenkiv.tekdaqc.communication.command.queue.QueueCallback;
-import com.tenkiv.tekdaqc.communication.data_points.AnalogInputData;
+import com.tenkiv.tekdaqc.communication.data_points.AnalogInputCountData;
 import com.tenkiv.tekdaqc.communication.data_points.DigitalInputData;
 import com.tenkiv.tekdaqc.communication.message.ABoardMessage;
 import com.tenkiv.tekdaqc.communication.message.MessageBroadcaster;
 import com.tenkiv.tekdaqc.hardware.ATekdaqc;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import static com.tenkiv.tekdaqc.android.application.util.UtilKt.*;
 
 /**
  * {@link Handler} class for the {@link TekdaqcCommunicationManager} which manages its {@link Messenger} callbacks.
@@ -80,59 +79,59 @@ public class ClientMessageHandler extends Handler {
 
             switch (msg.what) {
 
-                case TekCast.TEKDAQC_ANALOG_INPUT_MESSAGE:
+                case TEKDAQC_ANALOG_INPUT_MESSAGE:
                     mBroadcaster.broadcastAnalogInputDataPoint(
-                        mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
-                        (AnalogInputData) msg.getData().getParcelable(TekCast.DATA_MESSSAGE));
+                        mTekdaqcMap.get(msg.getData().getString(DATA_MESSSAGE_TEKDAQC)),
+                        (AnalogInputCountData) msg.getData().getParcelable(DATA_MESSSAGE));
                     break;
 
-                case TekCast.TEKDAQC_COMMAND_MESSAGE:
+                case TEKDAQC_COMMAND_MESSAGE:
                     mBroadcaster.broadcastMessage(
-                        mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
-                        (ABoardMessage) msg.getData().getParcelable(TekCast.DATA_MESSSAGE));
+                        mTekdaqcMap.get(msg.getData().getString(DATA_MESSSAGE_TEKDAQC)),
+                        (ABoardMessage) msg.getData().getParcelable(DATA_MESSSAGE));
                     break;
 
-                case TekCast.TEKDAQC_DEBUG_MESSAGE:
+                case TEKDAQC_DEBUG_MESSAGE:
                     mBroadcaster.broadcastMessage(
-                        mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
-                        (ABoardMessage) msg.getData().getParcelable(TekCast.DATA_MESSSAGE));
+                        mTekdaqcMap.get(msg.getData().getString(DATA_MESSSAGE_TEKDAQC)),
+                        (ABoardMessage) msg.getData().getParcelable(DATA_MESSSAGE));
                     break;
 
-                case TekCast.TEKDAQC_DIGITAL_INPUT_MESSAGE:
+                case TEKDAQC_DIGITAL_INPUT_MESSAGE:
                     mBroadcaster.broadcastDigitalInputDataPoint(
-                        mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
-                        (DigitalInputData) msg.getData().getParcelable(TekCast.DATA_MESSSAGE));
+                        mTekdaqcMap.get(msg.getData().getString(DATA_MESSSAGE_TEKDAQC)),
+                        (DigitalInputData) msg.getData().getParcelable(DATA_MESSSAGE));
                     break;
 
-                case TekCast.TEKDAQC_DIGITAL_OUTPUT_MESSAGE:
+                case TEKDAQC_DIGITAL_OUTPUT_MESSAGE:
                     mBroadcaster.broadcastMessage(
-                        mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
-                        new ASCIIDigitalOutputDataMessage(msg.getData().getBooleanArray(TekCast.DATA_MESSSAGE)));
+                        mTekdaqcMap.get(msg.getData().getString(DATA_MESSSAGE_TEKDAQC)),
+                        new ASCIIDigitalOutputDataMessage(msg.getData().getBooleanArray(DATA_MESSSAGE)));
                     break;
 
-                case TekCast.TEKDAQC_ERROR_MESSAGE:
+                case TEKDAQC_ERROR_MESSAGE:
                     mBroadcaster.broadcastMessage(
-                        mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
-                        (ABoardMessage) msg.getData().getParcelable(TekCast.DATA_MESSSAGE));
+                        mTekdaqcMap.get(msg.getData().getString(DATA_MESSSAGE_TEKDAQC)),
+                        (ABoardMessage) msg.getData().getParcelable(DATA_MESSSAGE));
                     break;
 
-                case TekCast.TEKDAQC_STATUS_MESSAGE:
+                case TEKDAQC_STATUS_MESSAGE:
                     mBroadcaster.broadcastMessage(
-                        mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)),
-                        (ABoardMessage) msg.getData().getParcelable(TekCast.DATA_MESSSAGE));
+                        mTekdaqcMap.get(msg.getData().getString(DATA_MESSSAGE_TEKDAQC)),
+                        (ABoardMessage) msg.getData().getParcelable(DATA_MESSSAGE));
                     break;
 
-                case TekCast.TEKDAQC_TASK_COMPLETE:
-                    final double uidComplete = msg.getData().getDouble(TekCast.DATA_MESSSAGE_UID);
+                case TEKDAQC_TASK_COMPLETE:
+                    final double uidComplete = msg.getData().getDouble(DATA_MESSSAGE_UID);
                     mTaskMap.get(uidComplete).success(
-                        mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)));
+                        mTekdaqcMap.get(msg.getData().getString(DATA_MESSSAGE_TEKDAQC)));
                     removeTaskFromMap(uidComplete);
                     break;
 
-                case TekCast.TEKDAQC_TASK_FAILURE:
-                    final double uidFailure = msg.getData().getDouble(TekCast.DATA_MESSSAGE_UID);
+                case TEKDAQC_TASK_FAILURE:
+                    final double uidFailure = msg.getData().getDouble(DATA_MESSSAGE_UID);
                     mTaskMap.get(uidFailure).failure(
-                        mTekdaqcMap.get(msg.getData().getString(TekCast.DATA_MESSSAGE_TEKDAQC)));
+                        mTekdaqcMap.get(msg.getData().getString(DATA_MESSSAGE_TEKDAQC)));
                     removeTaskFromMap(uidFailure);
                     break;
             }

@@ -5,10 +5,9 @@ import android.content.Intent;
 import android.os.*;
 import com.tenkiv.tekdaqc.android.application.service.remote_parceling.*;
 import com.tenkiv.tekdaqc.android.application.util.ServiceConnectionThread;
-import com.tenkiv.tekdaqc.android.application.util.TekCast;
-import com.tenkiv.tekdaqc.communication.command.queue.IQueueObject;
 import com.tenkiv.tekdaqc.communication.command.queue.QueueCallback;
-import com.tenkiv.tekdaqc.communication.data_points.AnalogInputData;
+import com.tenkiv.tekdaqc.communication.command.queue.values.IQueueObject;
+import com.tenkiv.tekdaqc.communication.data_points.AnalogInputCountData;
 import com.tenkiv.tekdaqc.communication.data_points.DigitalInputData;
 import com.tenkiv.tekdaqc.communication.message.ABoardMessage;
 import com.tenkiv.tekdaqc.communication.message.IMessageListener;
@@ -20,7 +19,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import static com.tenkiv.tekdaqc.android.application.util.UtilKt.*;
 
 
 /**
@@ -95,44 +96,40 @@ public class CommunicationService extends Service implements IMessageListener{
                 ((QueueCallback) object).addCallback(new ITaskComplete() {
                     @Override
                     public void onTaskSuccess(ATekdaqc aTekdaqc) {
-                        if (mMessengerMap.get(serial).size() > 0) {
-                            Bundle dataBundle = new Bundle();
-                            dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, serial);
-                            dataBundle.putDouble(TekCast.DATA_MESSSAGE_UID, ((QueueCallback) object).getUID());
-
-                            Message dataMessage = Message.obtain();
-                            dataMessage.what = TekCast.TEKDAQC_TASK_COMPLETE;
-                            dataMessage.setData(dataBundle);
-
-                            try {
-                                callbackBinder.send(dataMessage);
-                            } catch (RemoteException e) {
-                                e.printStackTrace();
-                            }
-                        }
+                        taskResponse(aTekdaqc.getSerialNumber(),
+                                callbackBinder,
+                                ((QueueCallback) object).getUID(),
+                                TEKDAQC_TASK_COMPLETE);
                     }
 
                     @Override
                     public void onTaskFailed(ATekdaqc aTekdaqc) {
-                        if (mMessengerMap.get(serial).size() > 0) {
-                            Bundle dataBundle = new Bundle();
-                            dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, serial);
-                            dataBundle.putDouble(TekCast.DATA_MESSSAGE_UID, ((QueueCallback) object).getUID());
-
-                            Message dataMessage = Message.obtain();
-                            dataMessage.what = TekCast.TEKDAQC_TASK_FAILURE;
-                            dataMessage.setData(dataBundle);
-
-                            try {
-                                callbackBinder.send(dataMessage);
-                            } catch (RemoteException e) {
-                                e.printStackTrace();
-                            }
-                        }
+                        taskResponse(aTekdaqc.getSerialNumber(),
+                                callbackBinder,
+                                ((QueueCallback) object).getUID(),
+                                TEKDAQC_TASK_FAILURE);
                     }
                 });
             }
             executeCommand(serial,object);
+        }
+    }
+
+    public void taskResponse(String tekdaqcSerial, Messenger messenger, double uid, int status){
+        if (mMessengerMap.get(tekdaqcSerial).size() > 0) {
+            Bundle dataBundle = new Bundle();
+            dataBundle.putString(DATA_MESSSAGE_TEKDAQC, tekdaqcSerial);
+            dataBundle.putDouble(DATA_MESSSAGE_UID, uid);
+
+            Message dataMessage = Message.obtain();
+            dataMessage.what = TEKDAQC_TASK_FAILURE;
+            dataMessage.setData(dataBundle);
+
+            try {
+                messenger.send(dataMessage);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -194,7 +191,7 @@ public class CommunicationService extends Service implements IMessageListener{
 
         if(!mTekdaqcMap.containsKey(response.getSerial())) {
             ATekdaqc tekdaqc = generateTekdaqc(response);
-            tekdaqc.registerListener(this);
+            tekdaqc.addListener(this);
             mTekdaqcMap.put(tekdaqc.getSerialNumber(), tekdaqc);
             mConnectionMap.put(tekdaqc.getSerialNumber(),new ServiceConnectionThread(tekdaqc));
 
@@ -217,7 +214,7 @@ public class CommunicationService extends Service implements IMessageListener{
 
                 mMessengerMap.remove(tekdaqc.getSerialNumber());
 
-                tekdaqc.unregisterListener(this);
+                tekdaqc.removeListener(this);
                 mTekdaqcMap.get(tekdaqc.getSerialNumber()).halt();
                 mTekdaqcMap.get(tekdaqc.getSerialNumber()).disconnect();
 
@@ -226,9 +223,7 @@ public class CommunicationService extends Service implements IMessageListener{
                 mConnectionMap.get(tekdaqc.getSerialNumber()).join();
                 mConnectionMap.remove(tekdaqc.getSerialNumber());
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
+            } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         }
@@ -237,23 +232,45 @@ public class CommunicationService extends Service implements IMessageListener{
 
     /**
      * Method to iterate through all registered listeners and send the {@link Message}.
-     *
-     * @param message The {@link Message} to be sent.
      */
-    public void sendMessageToRegisteredListeners(Message message, String serial){
+    public void sendMessageToRegisteredListeners(String serial, int what, Bundle data){
 
-        List<Messenger> responseList = mMessengerMap.get(serial);
+        if (mMessengerMap.get(serial).size() > 0) {
+            Message dataMessage = Message.obtain();
+            dataMessage.what = what;
+            dataMessage.setData(data);
 
-        for (Messenger messenger : responseList) {
-            if (messenger != null) {
-                try {
-                    messenger.send(message);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
+            List<Messenger> responseList = mMessengerMap.get(serial);
+
+            for (Messenger messenger : responseList) {
+                if (messenger != null) {
+                    try {
+                        messenger.send(dataMessage);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }else{
+                    mMessengerMap.get(serial).remove(null);
                 }
-            }else{
-                mMessengerMap.get(serial).remove(messenger);
             }
+        }
+    }
+
+    private boolean checkMessengerList(String serial){
+        if (mMessengerMap.get(serial).size() > 0) {
+            return true;
+        }else{
+            mMessengerMap.remove(serial);
+
+            //TODO Check this.
+            mMessengerMap.forEachEntry(1000,it->{});
+
+            for(Map.Entry<String, List<Messenger>> callbackLists: mMessengerMap.entrySet()){
+                if(callbackLists.getValue().size() == 0){
+                    mMessengerMap.remove(callbackLists.getKey());
+                }
+            }
+            return false;
         }
     }
 
@@ -275,25 +292,24 @@ public class CommunicationService extends Service implements IMessageListener{
         public void handleMessage(Message msg) {
             switch (msg.what){
 
-                case TekCast.SERVICE_MSG_COMMAND:
-                    IQueueObject command = (IQueueObject) msg.getData().getSerializable(TekCast.SERVICE_COMMAND_KEY);
-                    String commandSerial = msg.getData().getString(TekCast.SERVICE_SERIAL_KEY);
+                case SERVICE_MSG_COMMAND:
+                    IQueueObject command = (IQueueObject) msg.getData().getSerializable(SERVICE_COMMAND_KEY);
+                    String commandSerial = msg.getData().getString(SERVICE_SERIAL_KEY);
                     executeCommand(commandSerial,command);
                     break;
 
-                case TekCast.SERVICE_MSG_TASK:
-                        List<IQueueObject> task = (List<IQueueObject>) msg.getData().getSerializable(TekCast.SERVICE_TASK_KEY);
-                        String taskSerial = msg.getData().getString(TekCast.SERVICE_SERIAL_KEY);
-                        executeTask(taskSerial, task, msg.replyTo);
-
+                case SERVICE_MSG_TASK:
+                    List<IQueueObject> task = (List<IQueueObject>) msg.getData().getSerializable(SERVICE_TASK_KEY);
+                    String taskSerial = msg.getData().getString(SERVICE_SERIAL_KEY);
+                    executeTask(taskSerial, task, msg.replyTo);
                     break;
 
-                case TekCast.SERVICE_MSG_CONNECT:
-                    connectToTekdaqc(((LocatorResponse) msg.getData().getSerializable(TekCast.SERVICE_TEKDAQC_CONNECT)),msg.replyTo);
+                case SERVICE_MSG_CONNECT:
+                    connectToTekdaqc(((LocatorResponse) msg.getData().getSerializable(SERVICE_TEKDAQC_CONNECT)),msg.replyTo);
                     break;
 
-                case TekCast.SERVICE_MSG_DISCONNECT:
-                    disconnectFromTekdaqc((ATekdaqc) msg.getData().getSerializable(TekCast.SERVICE_TEKDAQC_DISCONNECT),msg.replyTo);
+                case SERVICE_MSG_DISCONNECT:
+                    disconnectFromTekdaqc((ATekdaqc) msg.getData().getSerializable(SERVICE_TEKDAQC_DISCONNECT),msg.replyTo);
                     break;
             }
         }
@@ -304,14 +320,12 @@ public class CommunicationService extends Service implements IMessageListener{
 
         if (mMessengerMap.get(tekdaqc.getSerialNumber()).size() > 0) {
             Bundle dataBundle = new Bundle();
-            dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
-            dataBundle.putParcelable(TekCast.DATA_MESSSAGE, (ParcelableErrorMessage) message);
+            dataBundle.putString(DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
+            dataBundle.putParcelable(DATA_MESSSAGE, (ParcelableErrorMessage) message);
 
-            Message dataMessage = Message.obtain();
-            dataMessage.what = TekCast.TEKDAQC_ERROR_MESSAGE;
-            dataMessage.setData(dataBundle);
-
-            sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
+            sendMessageToRegisteredListeners(tekdaqc.getSerialNumber(),
+                    TEKDAQC_ERROR_MESSAGE,
+                    dataBundle);
         }
     }
 
@@ -320,14 +334,12 @@ public class CommunicationService extends Service implements IMessageListener{
 
         if (mMessengerMap.get(tekdaqc.getSerialNumber()).size() > 0) {
             Bundle dataBundle = new Bundle();
-            dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
-            dataBundle.putParcelable(TekCast.DATA_MESSSAGE, (ParcelableStatusMessage) message);
+            dataBundle.putString(DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
+            dataBundle.putParcelable(DATA_MESSSAGE, (ParcelableStatusMessage) message);
 
-            Message dataMessage = Message.obtain();
-            dataMessage.what = TekCast.TEKDAQC_STATUS_MESSAGE;
-            dataMessage.setData(dataBundle);
-
-            sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
+            sendMessageToRegisteredListeners(tekdaqc.getSerialNumber(),
+                    TEKDAQC_STATUS_MESSAGE,
+                    dataBundle);
         }
     }
 
@@ -336,14 +348,12 @@ public class CommunicationService extends Service implements IMessageListener{
 
         if (mMessengerMap.get(tekdaqc.getSerialNumber()).size() > 0) {
             Bundle dataBundle = new Bundle();
-            dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
-            dataBundle.putParcelable(TekCast.DATA_MESSSAGE, (ParcelableDebugMessage) message);
+            dataBundle.putString(DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
+            dataBundle.putParcelable(DATA_MESSSAGE, (ParcelableDebugMessage) message);
 
-            Message dataMessage = Message.obtain();
-            dataMessage.what = TekCast.TEKDAQC_DEBUG_MESSAGE;
-            dataMessage.setData(dataBundle);
-
-            sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
+            sendMessageToRegisteredListeners(tekdaqc.getSerialNumber(),
+                    TEKDAQC_DEBUG_MESSAGE,
+                    dataBundle);
         }
     }
 
@@ -352,30 +362,26 @@ public class CommunicationService extends Service implements IMessageListener{
 
         if (mMessengerMap.get(tekdaqc.getSerialNumber()).size() > 0) {
             Bundle dataBundle = new Bundle();
-            dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
-            dataBundle.putParcelable(TekCast.DATA_MESSSAGE, (ParcelableCommandMessage) message);
+            dataBundle.putString(DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
+            dataBundle.putParcelable(DATA_MESSSAGE, (ParcelableCommandMessage) message);
 
-            Message dataMessage = Message.obtain();
-            dataMessage.what = TekCast.TEKDAQC_COMMAND_MESSAGE;
-            dataMessage.setData(dataBundle);
-
-            sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
+            sendMessageToRegisteredListeners(tekdaqc.getSerialNumber(),
+                    TEKDAQC_COMMAND_MESSAGE,
+                    dataBundle);
         }
     }
 
     @Override
-    public void onAnalogInputDataReceived(ATekdaqc tekdaqc, AnalogInputData data) {
+    public void onAnalogInputDataReceived(ATekdaqc tekdaqc, AnalogInputCountData data) {
 
         if (mMessengerMap.get(tekdaqc.getSerialNumber()).size() > 0) {
             Bundle dataBundle = new Bundle();
-            dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
-            dataBundle.putParcelable(TekCast.DATA_MESSSAGE, (ParcelableAnalogInputData) data);
+            dataBundle.putString(DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
+            dataBundle.putParcelable(DATA_MESSSAGE, (ParcelableAnalogInputData) data);
 
-            Message dataMessage = Message.obtain();
-            dataMessage.what = TekCast.TEKDAQC_ANALOG_INPUT_MESSAGE;
-            dataMessage.setData(dataBundle);
-
-            sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
+            sendMessageToRegisteredListeners(tekdaqc.getSerialNumber(),
+                    TEKDAQC_ANALOG_INPUT_MESSAGE,
+                    dataBundle);
         }
     }
 
@@ -385,14 +391,12 @@ public class CommunicationService extends Service implements IMessageListener{
 
         if (mMessengerMap.get(tekdaqc.getSerialNumber()).size() > 0) {
             Bundle dataBundle = new Bundle();
-            dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
-            dataBundle.putParcelable(TekCast.DATA_MESSSAGE, (ParcelableDigitalInputData) data);
+            dataBundle.putString(DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
+            dataBundle.putParcelable(DATA_MESSSAGE, (ParcelableDigitalInputData) data);
 
-            Message dataMessage = Message.obtain();
-            dataMessage.what = TekCast.TEKDAQC_DIGITAL_INPUT_MESSAGE;
-            dataMessage.setData(dataBundle);
-
-            sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
+            sendMessageToRegisteredListeners(tekdaqc.getSerialNumber(),
+                    TEKDAQC_DIGITAL_INPUT_MESSAGE,
+                    dataBundle);
         }
     }
 
@@ -401,14 +405,12 @@ public class CommunicationService extends Service implements IMessageListener{
 
         if (mMessengerMap.get(tekdaqc.getSerialNumber()).size() > 0) {
             Bundle dataBundle = new Bundle();
-            dataBundle.putString(TekCast.DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
-            dataBundle.putBooleanArray(TekCast.DATA_MESSSAGE, data);
+            dataBundle.putString(DATA_MESSSAGE_TEKDAQC, tekdaqc.getSerialNumber());
+            dataBundle.putBooleanArray(DATA_MESSSAGE, data);
 
-            Message dataMessage = Message.obtain();
-            dataMessage.what = TekCast.TEKDAQC_DIGITAL_OUTPUT_MESSAGE;
-            dataMessage.setData(dataBundle);
-
-            sendMessageToRegisteredListeners(dataMessage, tekdaqc.getSerialNumber());
+            sendMessageToRegisteredListeners(tekdaqc.getSerialNumber(),
+                    TEKDAQC_DIGITAL_OUTPUT_MESSAGE,
+                    dataBundle);
         }
     }
 }

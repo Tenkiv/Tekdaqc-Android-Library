@@ -9,13 +9,14 @@ import com.tenkiv.tekdaqc.android.application.client.TekdaqcCommunicationManager
 import com.tenkiv.tekdaqc.android.application.service.CommunicationService;
 import com.tenkiv.tekdaqc.android.application.service.LocatorService;
 import com.tenkiv.tekdaqc.android.application.util.IServiceListener;
-import com.tenkiv.tekdaqc.android.application.util.TekCast;
 import com.tenkiv.tekdaqc.hardware.ATekdaqc;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static com.tenkiv.tekdaqc.android.application.util.UtilKt.*;
 
 /**
  * Class which handles the client side communication to the {@link LocatorService} as well as initiates the {@link CommunicationService} to ensure that the
@@ -89,7 +90,7 @@ public class TekdaqcLocatorManager implements ServiceConnection, IServiceListene
 
         startLocatorService();
 
-        TekdaqcCommunicationManager.startCommunicationService(context,this);
+        TekdaqcCommunicationManager.Companion.startCommunicationService(context,this);
 
     }
 
@@ -99,7 +100,7 @@ public class TekdaqcLocatorManager implements ServiceConnection, IServiceListene
 
         startLocatorService();
 
-        TekdaqcCommunicationManager.startCommunicationService(context,this);
+        TekdaqcCommunicationManager.Companion.startCommunicationService(context,this);
 
     }
 
@@ -191,29 +192,29 @@ public class TekdaqcLocatorManager implements ServiceConnection, IServiceListene
 
                 Bundle bundle = intent.getExtras();
 
-                ATekdaqc tekdaqc = new Tekdaqc((LocatorResponse)intent.getExtras().get(TekCast.BROADCAST_TEKDAQC_RESPONSE), mTekdaqcComManager);
+                ATekdaqc tekdaqc = new Tekdaqc((LocatorResponse)intent.getExtras().get(BROADCAST_TEKDAQC_RESPONSE), mTekdaqcComManager);
 
-                boolean locatedByForeignApp = !(Locator.getActiveTekdaqcMap().containsKey(tekdaqc.getSerialNumber()));
+                boolean locatedByForeignApp = !(Locator.Companion.getInstance().getActiveTekdaqcMap().containsKey(tekdaqc.getSerialNumber()));
 
                 cullListeners();
 
-                switch (bundle.getInt(TekCast.BROADCAST_CALL_TYPE)) {
+                switch (bundle.getInt(BROADCAST_CALL_TYPE)) {
 
-                    case TekCast.LOCATOR_FIRST:
-                        Locator.addTekdaqctoMap(tekdaqc);
+                    case LOCATOR_FIRST:
+                        Locator.Companion.getInstance().addTekdaqcToMap(tekdaqc);
                         for(OnTekdaqcDiscovered listener: mUserListeners) {
                             listener.onTekdaqcFirstLocated(tekdaqc);
                         }
                         break;
 
-                    case TekCast.LOCATOR_LOST:
-                        Locator.removeTekdaqcForSerial(tekdaqc.getSerialNumber());
+                    case LOCATOR_LOST:
+                        Locator.Companion.getInstance().removeTekdaqcForSerial(tekdaqc.getSerialNumber());
                         for(OnTekdaqcDiscovered listener: mUserListeners) {
                             listener.onTekdaqcNoLongerLocated(tekdaqc);
                         }
                         break;
 
-                    case TekCast.LOCATOR_RESPONSE:
+                    case LOCATOR_RESPONSE:
                         if(locatedByForeignApp){
                             for(OnTekdaqcDiscovered listener: mUserListeners) {
                                 listener.onTekdaqcFirstLocated(tekdaqc);

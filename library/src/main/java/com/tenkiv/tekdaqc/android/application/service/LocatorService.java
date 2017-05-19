@@ -5,10 +5,10 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import com.tenkiv.tekdaqc.locator.TekdaqcLocatorManager;
-import com.tenkiv.tekdaqc.android.application.util.TekCast;
 import com.tenkiv.tekdaqc.hardware.ATekdaqc;
 import com.tenkiv.tekdaqc.locator.Locator;
 import com.tenkiv.tekdaqc.locator.OnTekdaqcDiscovered;
+import static com.tenkiv.tekdaqc.android.application.util.UtilKt.*;
 
 /**
  * Class which handles the UDP broadcasts for Tekdaqc location. It then broadcasts the discovered Tekdaqcs so they can be received by the {@link TekdaqcLocatorManager}.
@@ -54,16 +54,13 @@ public  class LocatorService extends Service implements OnTekdaqcDiscovered {
         try {
             if (!isLocatorRunning) {
                 isLocatorRunning = true;
-                mLocator = new Locator(null, this);
-                mLocator.searchForTekDAQCS(
-                        TekCast.DEFAULT_DELAY,
-                        TekCast.DEFAULT_PERIOD);
+                mLocator = Locator.Companion.getInstance();
+                mLocator.searchForTekdaqcs();
             }
         }catch(Exception e){
             e.printStackTrace();
         }
     }
-
 
     @Override
     public void onDestroy() {
@@ -73,12 +70,10 @@ public  class LocatorService extends Service implements OnTekdaqcDiscovered {
         }
     }
 
-
     @Override
     public boolean onUnbind(Intent intent) {
         return super.onUnbind(intent);
     }
-
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -87,31 +82,27 @@ public  class LocatorService extends Service implements OnTekdaqcDiscovered {
 
     @Override
     public void onTekdaqcResponse(ATekdaqc board) {
-        if(board == null){return;}
-        Intent broadcast = new Intent(TekCast.BROADCAST_URI);
-        broadcast.putExtra(TekCast.BROADCAST_TEKDAQC_RESPONSE, board.getLocatorResponse());
-        broadcast.putExtra(TekCast.BROADCAST_CALL_TYPE,TekCast.LOCATOR_RESPONSE);
-        sendBroadcast(broadcast);
+        broadcastLocatorResponse(board,LOCATOR_RESPONSE);
     }
 
     @Override
     public void onTekdaqcFirstLocated(ATekdaqc board) {
-        if(board == null){return;}
-        Intent broadcast = new Intent(TekCast.BROADCAST_URI);
-        broadcast.putExtra(TekCast.BROADCAST_TEKDAQC_RESPONSE, board.getLocatorResponse());
-        broadcast.putExtra(TekCast.BROADCAST_CALL_TYPE,TekCast.LOCATOR_FIRST);
-        sendBroadcast(broadcast);
+        broadcastLocatorResponse(board,LOCATOR_FIRST);
 
     }
 
     @Override
     public void onTekdaqcNoLongerLocated(ATekdaqc board) {
-        if(board == null){return;}
-        Intent broadcast = new Intent(TekCast.BROADCAST_URI);
-        broadcast.putExtra(TekCast.BROADCAST_TEKDAQC_RESPONSE, board.getLocatorResponse());
-        broadcast.putExtra(TekCast.BROADCAST_CALL_TYPE,TekCast.LOCATOR_LOST);
-        sendBroadcast(broadcast);
+        broadcastLocatorResponse(board,LOCATOR_LOST);
 
+    }
+
+    private void broadcastLocatorResponse(ATekdaqc tekdaqc, int callType){
+        if(tekdaqc == null){return;}
+        Intent broadcast = new Intent(BROADCAST_URI);
+        broadcast.putExtra(BROADCAST_TEKDAQC_RESPONSE, tekdaqc.getLocatorResponse());
+        broadcast.putExtra(BROADCAST_CALL_TYPE,callType);
+        sendBroadcast(broadcast);
     }
 
     /**
@@ -123,6 +114,4 @@ public  class LocatorService extends Service implements OnTekdaqcDiscovered {
             return LocatorService.this;
         }
     }
-
-
 }

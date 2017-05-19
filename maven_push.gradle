@@ -25,19 +25,19 @@ if (isReleaseBuild()) {
 }
 
 boolean isRelease() {
-    return /*VERSION_NAME.contains("SNAPSHOT") == false*/true
+    return /*VERSION_NAME.contains("SNAPSHOT") == false*/ false
 }
 
 def getRepositoryUsername() {
     Properties localProperties = new Properties()
     localProperties.load(project.rootProject.file('local.properties').newDataInputStream())
-    return localProperties.getProperty('sonatypeUser')
+    return localProperties.getProperty('sonatype_user')
 }
 
 def getRepositoryPassword() {
     Properties localProperties = new Properties()
     localProperties.load(project.rootProject.file('local.properties').newDataInputStream())
-    return localProperties.getProperty('sonatypePass')
+    return localProperties.getProperty('sonatype_pass')
 }
 
 afterEvaluate { project ->
@@ -87,11 +87,11 @@ afterEvaluate { project ->
                     }
                 }
 
-                pom.whenConfigured {
+                /*pom.whenConfigured {
                     p -> p.dependencies = p.dependencies.findAll {
                         dep -> dep.artifactId != "shared-java-library"
                     }
-                }
+                }*/
             }
         }
     }
@@ -125,18 +125,18 @@ afterEvaluate { project ->
         from android.sourceSets.main.java.sourceFiles
     }
 
-    task copyLibs(type: Copy) {
+    /*task copyLibs(type: Copy) {
         from configurations.provided
         into "${projectDir}/libs"
-    }
+    }*/
 
-    clean {
-        delete fileTree(dir: "${projectDir}/libs", include: '**/*.jar')
-
-        finalizedBy{
-            copyLibs
-        }
-    }
+    //clean {
+    //    delete fileTree(dir: "${projectDir}/libs", include: '**/*.jar')
+    //
+    //    finalizedBy{
+    //        copyLibs
+    //    }
+    //}
 
     artifacts {
         //archives packageReleaseJar

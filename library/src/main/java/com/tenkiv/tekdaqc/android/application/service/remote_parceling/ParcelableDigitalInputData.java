@@ -3,7 +3,6 @@ package com.tenkiv.tekdaqc.android.application.service.remote_parceling;
 import android.os.Parcel;
 import android.os.Parcelable;
 import com.tenkiv.tekdaqc.communication.data_points.DigitalInputData;
-import com.tenkiv.tekdaqc.utility.DigitalState;
 
 /**
  * Wrapper to allow digital input data messages to be turned into {@link Parcelable}.
@@ -13,7 +12,7 @@ import com.tenkiv.tekdaqc.utility.DigitalState;
  */
 public class ParcelableDigitalInputData extends DigitalInputData implements Parcelable {
 
-    public ParcelableDigitalInputData(final int channel, final String name, final long timestamp, final DigitalState state) {
+    public ParcelableDigitalInputData(final int channel, final String name, final long timestamp, final boolean state) {
         super(channel, name, timestamp, state);
     }
 
@@ -21,7 +20,7 @@ public class ParcelableDigitalInputData extends DigitalInputData implements Parc
         mPhysicalChannel = in.readInt();
         mName = in.readString();
         mTimeStamp = in.readLong();
-        mState = DigitalState.getValueFromOrdinal((byte)in.readInt());
+        mState = in.readByte() != 0;
     }
 
     public static final Creator<ParcelableDigitalInputData> CREATOR = new Creator<ParcelableDigitalInputData>() {
@@ -46,6 +45,6 @@ public class ParcelableDigitalInputData extends DigitalInputData implements Parc
         dest.writeInt(mPhysicalChannel);
         dest.writeString(mName);
         dest.writeLong(mTimeStamp);
-        dest.writeInt(mState.ordinal());
+        dest.writeByte((byte) (mState ? 1 : 0));
     }
 }

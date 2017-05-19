@@ -3,8 +3,8 @@ package com.tenkiv.tekdaqc.android.application.client;
 import android.app.Service;
 import com.tenkiv.tekdaqc.android.application.service.CommunicationService;
 import com.tenkiv.tekdaqc.communication.command.queue.ICommandManager;
-import com.tenkiv.tekdaqc.communication.command.queue.IQueueObject;
 import com.tenkiv.tekdaqc.communication.command.queue.Task;
+import com.tenkiv.tekdaqc.communication.command.queue.values.IQueueObject;
 
 /**
  * Implementation of {@link ICommandManager} which reroutes all attempts to execute commands and tasks to the {@link TekdaqcCommunicationManager}.
@@ -40,7 +40,6 @@ public class ClientCommandManager implements ICommandManager {
     @Override
     public void queueCommand(IQueueObject command) {
         mServiceManager.executeCommand(mSerial,command);
-
     }
 
     @Override
@@ -51,4 +50,13 @@ public class ClientCommandManager implements ICommandManager {
 
     @Override
     public void tryCommand() {}
+
+    @Override
+    public void purge(boolean forShutdown) {
+    }
+
+    @Override
+    public int getNumberQueued() {
+        return 0;
+    }
 }

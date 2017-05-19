@@ -13,6 +13,7 @@ import java.util.concurrent.Callable;
  * @since v1.0.0.0
  */
 public class AndroidRemoteParser extends ASCIIParsingExecutor {
+
     /**
      * Constructor.
      *

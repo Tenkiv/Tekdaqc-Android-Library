@@ -28,7 +28,7 @@ public class ServiceConnectionThread extends Thread {
     @Override
     public void run() {
         try {
-            mTekdaqc.connect(ATekdaqc.CONNECTION_METHOD.ETHERNET);
+            mTekdaqc.connect(ATekdaqc.AnalogScale.ANALOG_SCALE_5V, ATekdaqc.CONNECTION_METHOD.ETHERNET);
         } catch (IOException e) {
             e.printStackTrace();
         }

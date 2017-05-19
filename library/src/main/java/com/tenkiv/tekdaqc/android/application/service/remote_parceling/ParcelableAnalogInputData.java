@@ -2,7 +2,7 @@ package com.tenkiv.tekdaqc.android.application.service.remote_parceling;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import com.tenkiv.tekdaqc.communication.data_points.AnalogInputData;
+import com.tenkiv.tekdaqc.communication.data_points.AnalogInputCountData;
 
 /**
  * Wrapper to allow analog data messages to be turned into {@link Parcelable}.
@@ -10,7 +10,7 @@ import com.tenkiv.tekdaqc.communication.data_points.AnalogInputData;
  * @author Tenkiv (software@tenkiv.com)
  * @since v1.0.0.0
  */
-public class ParcelableAnalogInputData extends AnalogInputData implements Parcelable{
+public class ParcelableAnalogInputData extends AnalogInputCountData implements Parcelable{
 
     public ParcelableAnalogInputData(final int channel, final String name, final long timestamp, final int data) {
         super(channel, name, timestamp, data);

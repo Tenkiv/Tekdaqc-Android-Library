@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Tekdaqc-Android-Library.iml" filepath="$PROJECT_DIR$/.idea/modules/Tekdaqc-Android-Library.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/library/library.iml" filepath="$PROJECT_DIR$/.idea/modules/library/library.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Tekdaqc-Java-Core-Library/shared-lib/Java-Shared-Library.iml" filepath="$PROJECT_DIR$/../Tekdaqc-Java-Core-Library/shared-lib/Java-Shared-Library.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Tekdaqc-Android-Library.iml" filepath="$PROJECT_DIR$/Tekdaqc-Android-Library.iml" />
+      <module fileurl="file://$PROJECT_DIR$/library/library.iml" filepath="$PROJECT_DIR$/library/library.iml" />
     </modules>
   </component>
 </project>

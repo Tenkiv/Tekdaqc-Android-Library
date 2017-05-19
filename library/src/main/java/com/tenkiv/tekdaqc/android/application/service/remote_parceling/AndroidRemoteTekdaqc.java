@@ -22,7 +22,7 @@ public class AndroidRemoteTekdaqc extends Tekdaqc_RevD{
     }
 
     @Override
-    protected ASCIIParsingExecutor getParingExecutor() {
+    protected ASCIIParsingExecutor getParsingExecutor() {
         return new AndroidRemoteParser(1);
     }
 }

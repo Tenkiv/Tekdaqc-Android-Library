@@ -2,6 +2,7 @@ package com.tenkiv.tekdaqc.android.application.client;
 
 import com.tenkiv.tekdaqc.communication.command.queue.ICommandManager;
 import com.tenkiv.tekdaqc.communication.message.MessageBroadcaster;
+import com.tenkiv.tekdaqc.hardware.ATekdaqc;
 import com.tenkiv.tekdaqc.hardware.Tekdaqc_RevD;
 import com.tenkiv.tekdaqc.locator.LocatorResponse;
 
@@ -49,7 +50,7 @@ public class Tekdaqc extends Tekdaqc_RevD {
     }
 
     @Override
-    public void connect(CONNECTION_METHOD method) throws IOException {
+    public void connect(AnalogScale analogScale, CONNECTION_METHOD method) throws IOException {
         isConnected = true;
         mManager.connectToTekdaqc(this);
     }
@@ -67,7 +68,7 @@ public class Tekdaqc extends Tekdaqc_RevD {
     }
 
     public void ceaseCommunication(){
-        TekdaqcCommunicationManager.stopCommunicationManager();
+        TekdaqcCommunicationManager.Companion.stopCommunicationManager();
     }
 
     @Override
@@ -76,6 +77,6 @@ public class Tekdaqc extends Tekdaqc_RevD {
     }
 
     protected static MessageBroadcaster getMessageBroadcaster(){
-        return mMessageBroadcaster;
+        return messageBroadcaster;
     }
 }
